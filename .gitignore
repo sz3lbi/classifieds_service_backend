@@ -151,7 +151,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-#V S Code
+# VS Code
 .vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -164,3 +164,6 @@ cython_debug/
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# App custom ignores
+logs/

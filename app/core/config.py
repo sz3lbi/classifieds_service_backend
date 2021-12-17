@@ -1,3 +1,4 @@
+import logging
 import sys
 from typing import Any, Dict, List, Optional
 
@@ -16,6 +17,15 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 7 * 24 * 60  # 7 days
 
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+
+    # Logging config
+
+    LOGGING_PATH: str = "logs/{time}.log"
+    LOGGING_LEVEL: int = logging.INFO
+    LOGGING_ROTATION: str = "12:00"
+    LOGGING_RETENTION: str = "3 months"
+    LOGGING_FORMAT: str = "<level>{level: <8}</level> <green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> " \
+        "request id: {extra[request_id]} - <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>"
 
     # The following variables need to be defined in environment
 

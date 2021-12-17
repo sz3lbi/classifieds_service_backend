@@ -9,3 +9,4 @@ asyncpg>=0.24.0
 SQLAlchemy>=1.4.25
 black>=21.9b0
 pytest>=6.2.4
+loguru>=0.5.3

@@ -10,6 +10,7 @@ from app.deps.db import get_db
 from app.deps.users import current_superuser
 from app.models.user import User
 from app.schemas.user import User as UserSchema
+from app.core.logger import logger
 
 router = APIRouter()
 
@@ -26,4 +27,6 @@ def get_users(
     users = db.execute(select(User).offset(skip).limit(limit)).scalars().all()
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers["Content-Range"] = f"{skip}-{skip + len(users)}/{total}"
+    
+    logger.info(f"User {user} getting all users with status code {response.status_code}")
     return users

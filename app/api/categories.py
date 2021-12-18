@@ -13,6 +13,7 @@ from app.models.user import User
 from app.schemas.category import Category as CategorySchema
 from app.schemas.category import CategoryCreate, CategoryUpdate
 from app.schemas.request_params import RequestParams
+from app.core.logger import logger
 
 router = APIRouter(prefix="/categories")
 
@@ -39,6 +40,8 @@ def get_categories(
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(categories)}/{total}"
+    
+    logger.info(f"User {user} getting all categories with status code {response.status_code}")
     return categories
 
 
@@ -51,6 +54,8 @@ def create_category(
     category = Category(**category_in.dict())
     db.add(category)
     db.commit()
+    
+    logger.info(f"User {user} creating category {category.name} (ID {category.id})")
     return category
 
 
@@ -69,6 +74,8 @@ def update_category(
         setattr(category, field, value)
     db.add(category)
     db.commit()
+    
+    logger.info(f"User {user} updating category (ID {category.id})")
     return category
 
 
@@ -81,6 +88,8 @@ def get_category(
     category: Optional[Category] = db.get(Category, category_id)
     if not category:
         raise HTTPException(404)
+    
+    logger.info(f"User {user} getting category (ID {category.id})")
     return category
 
 
@@ -95,4 +104,6 @@ def delete_category(
         raise HTTPException(404)
     db.delete(category)
     db.commit()
+    
+    logger.info(f"User {user} deleting category (ID {category.id})")
     return {"success": True}

@@ -13,4 +13,6 @@ class City(Base):
     voivodeship = relationship("Voivodeship", back_populates="cities")
     name = Column(String(length=32))
 
-    classifieds = relationship("Classified", back_populates="city", cascade="all, delete")
+    classifieds = relationship(
+        "Classified", back_populates="city", cascade="all, delete"
+    )

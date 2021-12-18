@@ -40,8 +40,10 @@ def get_voivodeships(
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(voivodeships)}/{total}"
-    
-    logger.info(f"User {user} getting all voivodeships with status code {response.status_code}")
+
+    logger.info(
+        f"User {user} getting all voivodeships with status code {response.status_code}"
+    )
     return voivodeships
 
 
@@ -54,8 +56,10 @@ def create_voivodeship(
     voivodeship = Voivodeship(**voivodeship_in.dict())
     db.add(voivodeship)
     db.commit()
-    
-    logger.info(f"User {user} creating voivodeship {voivodeship.name} (ID {voivodeship.id})")
+
+    logger.info(
+        f"User {user} creating voivodeship {voivodeship.name} (ID {voivodeship.id})"
+    )
     return voivodeship
 
 
@@ -74,7 +78,7 @@ def update_voivodeship(
         setattr(voivodeship, field, value)
     db.add(voivodeship)
     db.commit()
-    
+
     logger.info(f"User {user} updating voivodeship (ID {voivodeship.id})")
     return voivodeship
 
@@ -88,7 +92,7 @@ def get_voivodeship(
     voivodeship: Optional[Voivodeship] = db.get(Voivodeship, voivodeship_id)
     if not voivodeship:
         raise HTTPException(404)
-    
+
     logger.info(f"User {user} getting voivodeship (ID {voivodeship.id})")
     return voivodeship
 
@@ -104,6 +108,6 @@ def delete_voivodeship(
         raise HTTPException(404)
     db.delete(voivodeship)
     db.commit()
-    
+
     logger.info(f"User {user} deleting voivodeship (ID {voivodeship.id})")
     return {"success": True}

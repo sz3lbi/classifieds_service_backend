@@ -8,9 +8,11 @@ from sqlalchemy.sql.sqltypes import DateTime, Enum, Integer, Numeric, String
 
 from app.db import Base
 
+
 class ClassifiedStatus(enum.Enum):
     active = enum.auto()
     hidden = enum.auto()
+
 
 class Classified(Base):
     __tablename__ = "classifieds"
@@ -21,11 +23,11 @@ class Classified(Base):
     updated = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    
+
     title = Column(String(length=32))
-    content = Column(String(length=8192))    
-    price = Column(Numeric(16, 2))    
-    status = Column(Enum(ClassifiedStatus))    
+    content = Column(String(length=8192))
+    price = Column(Numeric(16, 2))
+    status = Column(Enum(ClassifiedStatus))
 
     user_id = Column(GUID, ForeignKey("users.id"))
     user = relationship("User", back_populates="classifieds")

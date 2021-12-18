@@ -13,7 +13,9 @@ class User(Base, SQLAlchemyBaseUserTable):
     updated = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    classifieds = relationship("Classified", back_populates="user", cascade="all, delete")
+    classifieds = relationship(
+        "Classified", back_populates="user", cascade="all, delete"
+    )
 
     def __repr__(self):
         return f"User(id={repr(self.id)}, name={repr(self.email)})"

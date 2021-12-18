@@ -7,7 +7,7 @@ if __name__ == "__main__":
     import uvicorn
 
     app.logger = logger
-    
+
     logger.info("Starting uvicorn in reload mode")
     uvicorn.run(
         "main:app",

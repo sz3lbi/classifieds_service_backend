@@ -27,6 +27,8 @@ def get_users(
     users = db.execute(select(User).offset(skip).limit(limit)).scalars().all()
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers["Content-Range"] = f"{skip}-{skip + len(users)}/{total}"
-    
-    logger.info(f"User {user} getting all users with status code {response.status_code}")
+
+    logger.info(
+        f"User {user} getting all users with status code {response.status_code}"
+    )
     return users

@@ -1,5 +1,3 @@
-# from pydantic import BaseModel, EmailStr
-
 from fastapi_users import models
 
 

@@ -24,8 +24,10 @@ class Settings(BaseSettings):
     LOGGING_LEVEL: int = logging.INFO
     LOGGING_ROTATION: str = "12:00"
     LOGGING_RETENTION: str = "3 months"
-    LOGGING_FORMAT: str = "<level>{level: <8}</level> <green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> " \
+    LOGGING_FORMAT: str = (
+        "<level>{level: <8}</level> <green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> "
         "request id: {extra[request_id]} - <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>"
+    )
 
     # The following variables need to be defined in environment
 

@@ -73,10 +73,10 @@ def use_route_names_as_operation_ids(app: FastAPI) -> None:
             # Appending route methods to patch fastapi-users bug
             # where multiple routes with different methods have the same name
             if name.startswith("users"):
-                methods_joined = "_".join(route.methods).lower()    
+                methods_joined = "_".join(route.methods).lower()
                 name = f"{name}_{methods_joined}"
             if name in route_names:
-                raise Exception("Route function names should be unique")                    
+                raise Exception("Route function names should be unique")
             route.operation_id = name
             route_names.add(name)
 

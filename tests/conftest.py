@@ -11,7 +11,7 @@ from app.core.config import settings
 from app.db import Base
 from app.deps.db import get_db
 from app.factory import create_app
-from app.models.item import Item
+from app.models.category import Category
 from app.models.user import User
 from tests.utils import generate_random_string
 
@@ -86,16 +86,17 @@ def create_user(db: Session, default_password: str):
 
 
 @pytest.fixture(scope="session")
-def create_item(db: Session, create_user: Callable):
+def create_category(db: Session, create_user: Callable):
     def inner(user=None):
         if not user:
             user = create_user()
-        item = Item(
+        category = Category(
             user=user,
-            value="value",
+            name="name",
+            description="description",
         )
-        db.add(item)
+        db.add(category)
         db.commit()
-        return item
+        return category
 
     return inner

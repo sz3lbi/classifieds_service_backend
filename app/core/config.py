@@ -18,6 +18,11 @@ class Settings(BaseSettings):
 
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
+    # Images upload
+
+    IMAGES_MAX_SIZE: int = 5_000_000  # 5 MB
+    IMAGES_UPLOAD_PATH: str = "uploads/"
+
     # Logging config
 
     LOGGING_PATH: str = "logs/{time}.log"

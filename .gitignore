@@ -167,3 +167,4 @@ cython_debug/
 
 # App custom ignores
 logs/
+uploads/

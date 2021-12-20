@@ -9,7 +9,7 @@ from sqlalchemy.sql.sqltypes import DateTime, Enum, Integer, Numeric, String
 from app.db import Base
 
 
-class ClassifiedStatus(enum.Enum):
+class ClassifiedStatus(int, enum.Enum):
     active = enum.auto()
     hidden = enum.auto()
 

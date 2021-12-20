@@ -18,6 +18,8 @@ class Settings(BaseSettings):
 
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
+    PASSWORD_MIN_LENGTH: int = 12
+
     # Images upload
 
     IMAGES_MAX_SIZE: int = 5_000_000  # 5 MB

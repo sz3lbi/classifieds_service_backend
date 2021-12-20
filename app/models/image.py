@@ -16,6 +16,7 @@ class Image(Base):
     user_id = Column(GUID, ForeignKey("users.id"))
     user = relationship("User", back_populates="images")
 
-    classifieds = relationship(
-        "Classified", back_populates="image", cascade="all, delete"
+    classified_id = Column(Integer, ForeignKey("classifieds.id"))
+    classified = relationship(
+        "Classified", back_populates="images", cascade="all, delete"
     )

@@ -54,7 +54,6 @@ def get_classified_images(
     classified_id: int,
     db: Session = Depends(get_db),
     request_params: RequestParams = Depends(parse_react_admin_params(Image)),
-    user: User = Depends(current_user),
 ) -> Any:
     classified: Optional[Image] = db.get(Classified, classified_id)
     if not classified:
@@ -78,7 +77,7 @@ def get_classified_images(
     ] = f"{request_params.skip}-{request_params.skip + len(images)}/{total}"
 
     logger.info(
-        f"User {user} getting images for classified {classified_id} with status code {response.status_code}"
+        f"Getting images for classified {classified_id} with status code {response.status_code}"
     )
     return images
 
@@ -90,10 +89,18 @@ def get_classified_images(
     status_code=201,
 )
 def create_image(
+    image_in: ImageCreate,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     user: User = Depends(current_user),
 ) -> Any:
+    classified: Optional[Classified] = db.get(Classified, image_in.classified_id)
+    if not classified or classified.user_id != user.id:
+        logger.error(
+            f"User {user} tried to create image in other's user classified (ID {classified.id})"
+        )
+        raise HTTPException(404)
+
     if file.content_type not in ["image/png", "image/jpeg"]:
         logger.error(f"User {user} tried to create image of type {file.content_type}")
         raise HTTPException(
@@ -107,11 +114,14 @@ def create_image(
     save_upload_file(file, Path(destination))
 
     image = Image(filename=filename, extension=extension)
+    image.classified_id = classified.id
     image.user_id = user.id
     db.add(image)
     db.commit()
 
-    logger.info(f"User {user} creating image at {destination} (ID {image.id})")
+    logger.info(
+        f"User {user} creating image (ID {image.id}) at {destination} for classified (ID {classified.id})"
+    )
     return image
 
 
@@ -136,7 +146,7 @@ def delete_image(
     user: User = Depends(current_user),
 ) -> Any:
     image: Optional[Image] = db.get(Image, image_id)
-    if not image:
+    if not image or (image.user_id != user.id and not user.is_superuser):
         raise HTTPException(404)
 
     try:

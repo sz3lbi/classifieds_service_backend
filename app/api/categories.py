@@ -23,7 +23,6 @@ def get_categories(
     response: Response,
     db: Session = Depends(get_db),
     request_params: RequestParams = Depends(parse_react_admin_params(Category)),
-    user: User = Depends(current_user),
 ) -> Any:
     total = db.scalar(select(func.count(Category.id)))
     categories = (
@@ -41,9 +40,7 @@ def get_categories(
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(categories)}/{total}"
 
-    logger.info(
-        f"User {user} getting all categories with status code {response.status_code}"
-    )
+    logger.info(f"Getting all categories with status code {response.status_code}")
     return categories
 
 
@@ -85,13 +82,12 @@ def update_category(
 def get_category(
     category_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
 ) -> Any:
     category: Optional[Category] = db.get(Category, category_id)
     if not category:
         raise HTTPException(404)
 
-    logger.info(f"User {user} getting category (ID {category.id})")
+    logger.info(f"Getting category (ID {category.id})")
     return category
 
 

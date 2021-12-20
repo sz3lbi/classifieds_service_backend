@@ -23,7 +23,6 @@ def get_cities(
     response: Response,
     db: Session = Depends(get_db),
     request_params: RequestParams = Depends(parse_react_admin_params(City)),
-    user: User = Depends(current_user),
 ) -> Any:
     total = db.scalar(select(func.count(City.id)))
     cities = (
@@ -41,9 +40,7 @@ def get_cities(
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(cities)}/{total}"
 
-    logger.info(
-        f"User {user} getting all cities with status code {response.status_code}"
-    )
+    logger.info(f"Getting all cities with status code {response.status_code}")
     return cities
 
 
@@ -85,13 +82,12 @@ def update_city(
 def get_city(
     city_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
 ) -> Any:
     city: Optional[City] = db.get(City, city_id)
     if not city:
         raise HTTPException(404)
 
-    logger.info(f"User {user} getting city (ID {city.id})")
+    logger.info(f"Getting city {city.name} (ID {city.id})")
     return city
 
 
@@ -107,5 +103,5 @@ def delete_city(
     db.delete(city)
     db.commit()
 
-    logger.info(f"User {user} deleting city (ID {city.id})")
+    logger.info(f"User {user} deleting city {city.name} (ID {city.id})")
     return {"success": True}

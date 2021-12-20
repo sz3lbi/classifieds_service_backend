@@ -23,7 +23,6 @@ def get_voivodeships(
     response: Response,
     db: Session = Depends(get_db),
     request_params: RequestParams = Depends(parse_react_admin_params(Voivodeship)),
-    user: User = Depends(current_user),
 ) -> Any:
     total = db.scalar(select(func.count(Voivodeship.id)))
     voivodeships = (
@@ -41,9 +40,7 @@ def get_voivodeships(
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(voivodeships)}/{total}"
 
-    logger.info(
-        f"User {user} getting all voivodeships with status code {response.status_code}"
-    )
+    logger.info(f"Getting all voivodeships with status code {response.status_code}")
     return voivodeships
 
 
@@ -87,13 +84,12 @@ def update_voivodeship(
 def get_voivodeship(
     voivodeship_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
 ) -> Any:
     voivodeship: Optional[Voivodeship] = db.get(Voivodeship, voivodeship_id)
     if not voivodeship:
         raise HTTPException(404)
 
-    logger.info(f"User {user} getting voivodeship (ID {voivodeship.id})")
+    logger.info(f"Getting voivodeship (ID {voivodeship.id})")
     return voivodeship
 
 

@@ -12,8 +12,6 @@ def create_app():
     description = f"{settings.PROJECT_NAME} API"
     app = FastAPI(
         title=settings.PROJECT_NAME,
-        openapi_url=f"{settings.API_PATH}/openapi.json",
-        docs_url="/docs/",
         description=description,
         redoc_url=None,
     )
@@ -24,23 +22,23 @@ def create_app():
 
 
 def setup_routers(app: FastAPI, fastapi_users: FastAPIUsers) -> None:
-    app.include_router(api_router, prefix=settings.API_PATH)
+    app.include_router(api_router)
     app.include_router(
         fastapi_users.get_auth_router(
             jwt_authentication,
             requires_verification=False,
         ),
-        prefix=f"{settings.API_PATH}/auth/jwt",
+        prefix="/auth/jwt",
         tags=["auth"],
     )
     app.include_router(
         fastapi_users.get_register_router(),
-        prefix=f"{settings.API_PATH}/auth",
+        prefix="/auth",
         tags=["auth"],
     )
     app.include_router(
         fastapi_users.get_users_router(requires_verification=False),
-        prefix=f"{settings.API_PATH}/users",
+        prefix="/users",
         tags=["users"],
     )
     # The following operation needs to be at the end of this function

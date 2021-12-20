@@ -9,7 +9,7 @@ from tests.utils import get_jwt_header
 
 class TestGetCategories:
     def test_get_categories_not_logged_in(self, client: TestClient):
-        resp = client.get(settings.API_PATH + "/categories")
+        resp = client.get("/categories")
         assert resp.status_code == 401
 
     def test_get_categories(
@@ -18,7 +18,7 @@ class TestGetCategories:
         user: User = create_user()
         create_category(user=user)
         jwt_header = get_jwt_header(user)
-        resp = client.get(settings.API_PATH + "/categories", headers=jwt_header)
+        resp = client.get("/categories", headers=jwt_header)
         assert resp.status_code == 200
         assert resp.headers["Content-Range"] == "0-1/1"
         assert len(resp.json()) == 1
@@ -31,9 +31,7 @@ class TestGetSingleCategory:
         user: User = create_user()
         category: Category = create_category(user=user)
         jwt_header = get_jwt_header(user)
-        resp = client.get(
-            settings.API_PATH + f"/categories/{category.id}", headers=jwt_header
-        )
+        resp = client.get(f"/categories/{category.id}", headers=jwt_header)
         assert resp.status_code == 200, resp.text
         data = resp.json()
         assert data["id"] == category.id
@@ -47,7 +45,7 @@ class TestCreateCategory:
         jwt_header = get_jwt_header(user)
 
         resp = client.post(
-            settings.API_PATH + "/categories",
+            "/categories",
             headers=jwt_header,
             json={"name": "name", "description": "description"},
         )
@@ -63,9 +61,7 @@ class TestDeleteCategory:
         category: Category = create_category(user=user)
         jwt_header = get_jwt_header(user)
 
-        resp = client.delete(
-            settings.API_PATH + f"/categories/{category.id}", headers=jwt_header
-        )
+        resp = client.delete(f"/categories/{category.id}", headers=jwt_header)
         assert resp.status_code == 200
 
     def test_delete_category_does_not_exist(
@@ -74,9 +70,7 @@ class TestDeleteCategory:
         user: User = create_user()
         jwt_header = get_jwt_header(user)
 
-        resp = client.delete(
-            settings.API_PATH + f"/categories/{10**6}", headers=jwt_header
-        )
+        resp = client.delete(f"/categories/{10**6}", headers=jwt_header)
         assert resp.status_code == 404, resp.text
 
 
@@ -89,7 +83,7 @@ class TestUpdateCategory:
         jwt_header = get_jwt_header(user)
 
         resp = client.put(
-            settings.API_PATH + f"/categories/{category.id}",
+            f"/categories/{category.id}",
             headers=jwt_header,
             json={"name": "new name", "description": "new description"},
         )

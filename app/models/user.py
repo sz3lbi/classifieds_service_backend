@@ -16,6 +16,7 @@ class User(Base, SQLAlchemyBaseUserTable):
     classifieds = relationship(
         "Classified", back_populates="user", cascade="all, delete"
     )
+    images = relationship("Image", back_populates="user", cascade="all, delete")
 
     def __repr__(self):
         return f"User(id={repr(self.id)}, name={repr(self.email)})"

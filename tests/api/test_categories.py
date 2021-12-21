@@ -8,9 +8,15 @@ from tests.utils import get_jwt_header
 
 
 class TestGetCategories:
-    def test_get_categories_not_logged_in(self, client: TestClient):
+    def test_get_categories_not_logged_in(
+        self, db: Session, client: TestClient, create_user, create_category
+    ):
+        user: User = create_user()
+        create_category(user=user)
         resp = client.get("/categories")
-        assert resp.status_code == 401
+        assert resp.status_code == 200
+        assert resp.headers["Content-Range"] == "0-1/1"
+        assert len(resp.json()) == 1
 
     def test_get_categories(
         self, db: Session, client: TestClient, create_user, create_category
@@ -54,7 +60,7 @@ class TestCreateCategory:
 
 
 class TestDeleteCategory:
-    def test_delete_category(
+    def test_delete_own_category(
         self, db: Session, client: TestClient, create_user, create_category
     ):
         user: User = create_user()
@@ -75,7 +81,7 @@ class TestDeleteCategory:
 
 
 class TestUpdateCategory:
-    def test_update_category(
+    def test_update_own_category(
         self, db: Session, client: TestClient, create_user, create_category
     ):
         user: User = create_user()

@@ -86,12 +86,27 @@ def create_user(db: Session, default_password: str):
 
 
 @pytest.fixture(scope="session")
+def create_superuser(db: Session, default_password: str):
+    def inner():
+        user = User(
+            id=uuid.uuid4(),
+            email=f"{generate_random_string(20)}@{generate_random_string(10)}.com",
+            hashed_password=get_password_hash(default_password),
+        )
+        user.is_superuser = True
+        db.add(user)
+        db.commit()
+        return user
+
+    return inner
+
+
+@pytest.fixture(scope="session")
 def create_category(db: Session, create_user: Callable):
     def inner(user=None):
         if not user:
             user = create_user()
         category = Category(
-            user=user,
             name="name",
             description="description",
         )

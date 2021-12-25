@@ -24,7 +24,7 @@ from app.core.logger import logger
 router = APIRouter()
 
 
-@router.post("/login", name="users:login", status_code=200)
+@router.post("/login", status_code=200)
 def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depends()):
     email = data.username
     password = data.password
@@ -37,10 +37,8 @@ def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depen
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post(
-    "/register", name="users:register", response_model=UserSchema, status_code=201
-)
-def login(
+@router.post("/register", response_model=UserSchema, status_code=201)
+def register(
     user_in: UserCreate,
     db: Session = Depends(get_db),
 ):

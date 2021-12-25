@@ -9,5 +9,5 @@ class Voivodeship(Base):
     __tablename__ = "voivodeships"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(length=32))
+    name = Column(String(length=32), nullable=False)
     cities = relationship("City", back_populates="voivodeship", cascade="all, delete")

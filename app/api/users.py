@@ -57,6 +57,7 @@ def register(
     db.add(user)
     db.commit()
 
+    logger.info(f"User {user.email} (ID {user.id}) has registered.")
     return user
 
 

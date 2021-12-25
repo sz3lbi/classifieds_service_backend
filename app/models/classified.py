@@ -1,6 +1,6 @@
 import enum
 
-from fastapi_users_db_sqlalchemy import GUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.functions import func
 from sqlalchemy.sql.schema import Column, ForeignKey
@@ -29,7 +29,7 @@ class Classified(Base):
     price = Column(Numeric(16, 2))
     status = Column(Enum(ClassifiedStatus))
 
-    user_id = Column(GUID, ForeignKey("users.id"))
+    user_id = Column(UUID, ForeignKey("users.id"))
     user = relationship("User", back_populates="classifieds")
 
     category_id = Column(Integer, ForeignKey("categories.id"))

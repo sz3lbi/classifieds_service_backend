@@ -14,8 +14,8 @@ from starlette.responses import Response
 from pathlib import Path
 
 from app.deps.db import get_db
+from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
-from app.deps.users import current_user
 from app.models.classified import Classified
 from app.models.image import Image
 from app.models.user import User
@@ -92,7 +92,7 @@ def create_image(
     image_in: ImageCreate,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     classified: Optional[Classified] = db.get(Classified, image_in.classified_id)
     if not classified or classified.user_id != user.id:
@@ -129,7 +129,7 @@ def create_image(
 # def get_image(
 #     image_id: int,
 #     db: Session = Depends(get_db),
-#     user: User = Depends(current_user),
+#     user: User = Depends(manager),
 # ) -> Any:
 #     image: Optional[Image] = db.get(Image, image_id)
 #     if not image:
@@ -143,7 +143,7 @@ def create_image(
 def delete_image(
     image_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     image: Optional[Image] = db.get(Image, image_id)
     if not image or (image.user_id != user.id and not user.is_superuser):

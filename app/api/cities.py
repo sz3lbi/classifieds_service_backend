@@ -6,8 +6,8 @@ from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
 from app.deps.db import get_db
+from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
-from app.deps.users import current_user
 from app.models.city import City
 from app.models.user import User
 from app.schemas.city import City as CitySchema
@@ -48,7 +48,7 @@ def get_cities(
 def create_city(
     city_in: CityCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     city = City(**city_in.dict())
     db.add(city)
@@ -63,7 +63,7 @@ def update_city(
     city_id: int,
     city_in: CityUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     city: Optional[City] = db.get(City, city_id)
     if not city:
@@ -95,7 +95,7 @@ def get_city(
 def delete_city(
     city_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     city: Optional[City] = db.get(City, city_id)
     if not city:

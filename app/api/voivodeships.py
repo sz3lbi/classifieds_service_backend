@@ -6,8 +6,8 @@ from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
 from app.deps.db import get_db
+from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
-from app.deps.users import current_user
 from app.models.voivodeship import Voivodeship
 from app.models.user import User
 from app.schemas.voivodeship import Voivodeship as VoivodeshipSchema
@@ -48,7 +48,7 @@ def get_voivodeships(
 def create_voivodeship(
     voivodeship_in: VoivodeshipCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     voivodeship = Voivodeship(**voivodeship_in.dict())
     db.add(voivodeship)
@@ -65,7 +65,7 @@ def update_voivodeship(
     voivodeship_id: int,
     voivodeship_in: VoivodeshipUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     voivodeship: Optional[Voivodeship] = db.get(Voivodeship, voivodeship_id)
     if not voivodeship:
@@ -97,7 +97,7 @@ def get_voivodeship(
 def delete_voivodeship(
     voivodeship_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     voivodeship: Optional[Voivodeship] = db.get(Voivodeship, voivodeship_id)
     if not voivodeship:

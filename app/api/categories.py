@@ -6,8 +6,8 @@ from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
 from app.deps.db import get_db
+from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
-from app.deps.users import current_user
 from app.models.category import Category
 from app.models.user import User
 from app.schemas.category import Category as CategorySchema
@@ -48,7 +48,7 @@ def get_categories(
 def create_category(
     category_in: CategoryCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     category = Category(**category_in.dict())
     db.add(category)
@@ -63,7 +63,7 @@ def update_category(
     category_id: int,
     category_in: CategoryUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     category: Optional[Category] = db.get(Category, category_id)
     if not category:
@@ -95,7 +95,7 @@ def get_category(
 def delete_category(
     category_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     category: Optional[Category] = db.get(Category, category_id)
     if not category:

@@ -1,11 +1,9 @@
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
-from fastapi_users import FastAPIUsers
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api import api_router
 from app.core.config import settings
-from app.deps.users import fastapi_users, jwt_authentication
 
 
 def create_app():
@@ -15,32 +13,14 @@ def create_app():
         description=description,
         redoc_url=None,
     )
-    setup_routers(app, fastapi_users)
+    setup_routers(app)
     init_db_hooks(app)
     setup_cors_middleware(app)
     return app
 
 
-def setup_routers(app: FastAPI, fastapi_users: FastAPIUsers) -> None:
+def setup_routers(app: FastAPI) -> None:
     app.include_router(api_router)
-    app.include_router(
-        fastapi_users.get_auth_router(
-            jwt_authentication,
-            requires_verification=False,
-        ),
-        prefix="/auth/jwt",
-        tags=["auth"],
-    )
-    app.include_router(
-        fastapi_users.get_register_router(),
-        prefix="/auth",
-        tags=["auth"],
-    )
-    app.include_router(
-        fastapi_users.get_users_router(requires_verification=False),
-        prefix="/users",
-        tags=["users"],
-    )
     # The following operation needs to be at the end of this function
     use_route_names_as_operation_ids(app)
 
@@ -67,16 +47,10 @@ def use_route_names_as_operation_ids(app: FastAPI) -> None:
     route_names = set()
     for route in app.routes:
         if isinstance(route, APIRoute):
-            name = route.name
-            # Appending route methods to patch fastapi-users bug
-            # where multiple routes with different methods have the same name
-            if name.startswith("users"):
-                methods_joined = "_".join(route.methods).lower()
-                name = f"{name}_{methods_joined}"
-            if name in route_names:
+            if route.name in route_names:
                 raise Exception("Route function names should be unique")
-            route.operation_id = name
-            route_names.add(name)
+            route.operation_id = route.name
+            route_names.add(route.name)
 
 
 def init_db_hooks(app: FastAPI) -> None:

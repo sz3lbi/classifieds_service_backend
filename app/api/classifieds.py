@@ -6,8 +6,8 @@ from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
 from app.deps.db import get_db
+from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
-from app.deps.users import current_user
 from app.models.classified import Classified
 from app.models.category import Category
 from app.models.user import User
@@ -57,7 +57,7 @@ def get_category_classifieds(
 def create_classified(
     classified_in: ClassifiedCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     classified = Classified(**classified_in.dict())
     classified.user_id = user.id
@@ -75,7 +75,7 @@ def update_classified(
     classified_id: int,
     classified_in: ClassifiedUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     classified: Optional[Classified] = db.get(Classified, classified_id)
     if not classified or (classified.user_id != user.id and not user.is_superuser):
@@ -107,7 +107,7 @@ def get_classified(
 def delete_classified(
     classified_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(current_user),
+    user: User = Depends(manager),
 ) -> Any:
     classified: Optional[Classified] = db.get(Classified, classified_id)
     if not classified or (classified.user_id != user.id and not user.is_superuser):

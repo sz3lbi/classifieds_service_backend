@@ -1,4 +1,3 @@
-from fastapi_users_db_sqlalchemy import GUID
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column, ForeignKey
@@ -13,7 +12,7 @@ class Image(Base):
     id = Column(Integer, primary_key=True)
     filename = Column(UUID(as_uuid=True), unique=True)
     extension = Column(String(length=8))
-    user_id = Column(GUID, ForeignKey("users.id"))
+    user_id = Column(UUID, ForeignKey("users.id"))
     user = relationship("User", back_populates="images")
 
     classified_id = Column(Integer, ForeignKey("classifieds.id"))

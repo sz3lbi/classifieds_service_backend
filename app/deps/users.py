@@ -1,64 +1,48 @@
-from typing import Optional, Union
-from fastapi import Depends, Request
-from fastapi_users import FastAPIUsers
-from fastapi_users.authentication import JWTAuthentication
-from fastapi_users.manager import BaseUserManager, InvalidPasswordException
-from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
+from datetime import timedelta
+from uuid import UUID
 
-from app.core.config import settings
-from app.db import database
-from app.models.user import User as UserModel
-from app.schemas.user import User, UserCreate, UserDB, UserUpdate
-from app.core.logger import logger
-from app.core.config import settings
+from sqlalchemy import select
+from sqlalchemy.orm.session import Session
+from fastapi_login import LoginManager
+from pydantic import EmailStr
+from passlib.context import CryptContext
 
-jwt_authentication: JWTAuthentication = JWTAuthentication(
+from app.models.user import User
+from app.core.config import settings
+from app.deps.db import ContextManager, get_db
+
+manager = LoginManager(
     secret=settings.SECRET_KEY,
-    lifetime_seconds=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    token_url="/login",
+    default_expiry=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
 )
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class UserManager(BaseUserManager[UserCreate, UserDB]):
-    user_db_model = UserDB
-    reset_password_token_secret = settings.SECRET_KEY
-    verification_token_secret = settings.SECRET_KEY
 
-    async def validate_password(
-        self,
-        password: str,
-        user: Union[UserCreate, UserDB],
-    ) -> None:
-        if len(password) < settings.PASSWORD_MIN_LENGTH:
-            raise InvalidPasswordException(
-                reason=f"Password should be at least {settings.PASSWORD_MIN_LENGTH} characters long"
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+
+@manager.user_loader()
+def query_user(id: UUID, db_session: Session = None):
+    if not db_session:
+        with ContextManager() as db_session:
+            user = (
+                db_session.execute(select(User).where(User.id == id)).scalars().first()
             )
-        if user.email in password:
-            raise InvalidPasswordException(reason="Password should not contain e-mail")
-        if not any(character.isupper() for character in password):
-            raise InvalidPasswordException(
-                reason="Password should contain an uppercase character"
-            )
-
-    async def on_after_register(self, user: UserDB, request: Optional[Request] = None):
-        logger.info(f"User {user.email} (ID {user.id}) has registered.")
+            return user
+    try:
+        user = db_session.execute(select(User).where(User.id == id)).scalars().first()
+    except:
+        return None
+    return user
 
 
-def get_user_db():
-    yield SQLAlchemyUserDatabase(UserDB, database, UserModel.__table__)
-
-
-def get_user_manager(user_db=Depends(get_user_db)):
-    yield UserManager(user_db)
-
-
-fastapi_users = FastAPIUsers(
-    get_user_manager,
-    [jwt_authentication],
-    User,
-    UserCreate,
-    UserUpdate,
-    UserDB,
-)
-
-current_user = fastapi_users.current_user(active=True)
-current_superuser = fastapi_users.current_user(active=True, superuser=True)
+def query_user_by_email(email: EmailStr, db_session: Session):
+    user = db_session.execute(select(User).where(User.email == email)).scalars().first()
+    return user

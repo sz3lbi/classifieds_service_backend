@@ -2,7 +2,7 @@ import uuid
 from typing import Callable, Generator
 
 import pytest
-from fastapi_users.password import get_password_hash
+
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import Session, sessionmaker
 from starlette.testclient import TestClient
@@ -13,6 +13,7 @@ from app.deps.db import get_db
 from app.factory import create_app
 from app.models.category import Category
 from app.models.user import User
+from app.deps.users import get_password_hash
 from tests.utils import generate_random_string
 
 engine = create_engine(

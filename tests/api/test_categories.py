@@ -1,7 +1,6 @@
 from sqlalchemy.orm.session import Session
 from starlette.testclient import TestClient
 
-from app.core.config import settings
 from app.models.category import Category
 from app.models.user import User
 from tests.utils import get_jwt_header
@@ -26,8 +25,8 @@ class TestGetCategories:
         jwt_header = get_jwt_header(user)
         resp = client.get("/categories", headers=jwt_header)
         assert resp.status_code == 200
-        assert resp.headers["Content-Range"] == "0-1/1"
-        assert len(resp.json()) == 1
+        assert resp.headers["Content-Range"] == "0-2/2"
+        assert len(resp.json()) == 2
 
 
 class TestGetSingleCategory:

@@ -3,13 +3,14 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
+from fastapi import HTTPException
 from fastapi_login import LoginManager
 from pydantic import EmailStr
 from passlib.context import CryptContext
 
 from app.models.user import User
 from app.core.config import settings
-from app.deps.db import ContextManager, get_db
+from app.deps.db import ContextManager
 
 manager = LoginManager(
     secret=settings.SECRET_KEY,
@@ -46,3 +47,24 @@ def query_user(id: UUID, db_session: Session = None):
 def query_user_by_email(email: EmailStr, db_session: Session):
     user = db_session.execute(select(User).where(User.email == email)).scalars().first()
     return user
+
+
+def validate_password(
+    email: EmailStr,
+    password: str,
+) -> None:
+    if len(password) < settings.PASSWORD_MIN_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Password should be at least {settings.PASSWORD_MIN_LENGTH} characters long",
+        )
+    if email in password:
+        raise HTTPException(
+            status_code=400,
+            detail="Password should not contain e-mail",
+        )
+    if not any(character.isupper() for character in password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password should contain an uppercase character",
+        )

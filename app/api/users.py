@@ -13,11 +13,12 @@ from app.deps.db import get_db
 from app.deps.users import (
     manager,
     verify_password,
+    validate_password,
     get_password_hash,
     query_user_by_email,
 )
 from app.models.user import User
-from app.schemas.user import User as UserSchema, UserDB
+from app.schemas.user import User as UserSchema
 from app.schemas.user import UserCreate
 from app.core.logger import logger
 
@@ -49,6 +50,7 @@ def register(
             detail=f"User already exists",
         )
 
+    validate_password(**user_in.dict())
     hashed_password = get_password_hash(user_in.password)
 
     user = User(email=user_in.email, hashed_password=hashed_password)

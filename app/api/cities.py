@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
@@ -48,13 +48,13 @@ def get_cities(
 def create_city(
     city_in: CityCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["cities_create"]),
 ) -> Any:
     city = City(**city_in.dict())
     db.add(city)
     db.commit()
 
-    logger.info(f"User {user} creating city {city.name} (ID {city.id})")
+    logger.info(f"{user} creating city {city.name} (ID {city.id})")
     return city
 
 
@@ -63,7 +63,7 @@ def update_city(
     city_id: int,
     city_in: CityUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["cities_update"]),
 ) -> Any:
     city: Optional[City] = db.get(City, city_id)
     if not city:
@@ -74,7 +74,7 @@ def update_city(
     db.add(city)
     db.commit()
 
-    logger.info(f"User {user} updating city (ID {city.id})")
+    logger.info(f"{user} updating city (ID {city.id})")
     return city
 
 
@@ -95,7 +95,7 @@ def get_city(
 def delete_city(
     city_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["cities_delete"]),
 ) -> Any:
     city: Optional[City] = db.get(City, city_id)
     if not city:
@@ -103,5 +103,5 @@ def delete_city(
     db.delete(city)
     db.commit()
 
-    logger.info(f"User {user} deleting city {city.name} (ID {city.id})")
+    logger.info(f"{user} deleting city {city.name} (ID {city.id})")
     return {"success": True}

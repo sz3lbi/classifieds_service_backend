@@ -7,3 +7,5 @@ from app.models.classified import Classified
 from app.models.image import Image
 from app.models.user import User
 from app.models.voivodeship import Voivodeship
+from app.models.scope import Scope
+from app.models.user_scope import UserScope

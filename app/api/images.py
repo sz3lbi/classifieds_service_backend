@@ -7,6 +7,7 @@ from fastapi import (
     HTTPException,
     File,
     UploadFile,
+    Security,
 )
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
@@ -59,7 +60,9 @@ def get_classified_images(
     if not classified:
         raise HTTPException(404)
 
-    total = db.scalar(select(func.count(Image.id)))
+    total = db.scalar(
+        select(func.count(Image.id)).where(classified in Image.classifieds)
+    )
     images = (
         db.execute(
             select(Image)
@@ -92,17 +95,19 @@ def create_image(
     image_in: ImageCreate,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["images_create"]),
 ) -> Any:
     classified: Optional[Classified] = db.get(Classified, image_in.classified_id)
-    if not classified or classified.user_id != user.id:
-        logger.error(
-            f"User {user} tried to create image in other's user classified (ID {classified.id})"
-        )
+    if not classified:
         raise HTTPException(404)
+    if classified.user_id != user.id:
+        logger.error(
+            f"{user} tried to create image in other's user classified (ID {classified.id})"
+        )
+        raise HTTPException(401)
 
     if file.content_type not in ["image/png", "image/jpeg"]:
-        logger.error(f"User {user} tried to create image of type {file.content_type}")
+        logger.error(f"{user} tried to create image of type {file.content_type}")
         raise HTTPException(
             status_code=400,
             detail=f"File type of {file.content_type} is not supported",
@@ -120,7 +125,7 @@ def create_image(
     db.commit()
 
     logger.info(
-        f"User {user} creating image (ID {image.id}) at {destination} for classified (ID {classified.id})"
+        f"{user} creating image (ID {image.id}) at {destination} for classified (ID {classified.id})"
     )
     return image
 
@@ -143,11 +148,13 @@ def create_image(
 def delete_image(
     image_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["images_delete"]),
 ) -> Any:
     image: Optional[Image] = db.get(Image, image_id)
-    if not image or (image.user_id != user.id and not user.is_superuser):
+    if not image:
         raise HTTPException(404)
+    if image.user_id != user.id and not user.is_superuser:
+        raise HTTPException(401)
 
     try:
         os.remove(f"{settings.IMAGES_UPLOAD_PATH}{image.filename}{image.extension}")
@@ -157,5 +164,5 @@ def delete_image(
     db.delete(image)
     db.commit()
 
-    logger.info(f"User {user} deleting image (ID {image.id})")
+    logger.info(f"{user} deleting image (ID {image.id})")
     return {"success": True}

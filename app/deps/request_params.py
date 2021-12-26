@@ -2,6 +2,7 @@ import json
 from typing import Optional
 
 from fastapi import HTTPException, Query
+from loguru import logger
 from sqlalchemy import asc, desc
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
@@ -30,7 +31,6 @@ def parse_react_admin_params(model: DeclarativeMeta) -> RequestParams:
             start, end = json.loads(range_)
             skip, limit = start, (end - start + 1)
 
-        order_by = desc(model.id)
         if sort_:
             sort_column, sort_order = json.loads(sort_)
             if sort_order.lower() == "asc":
@@ -38,8 +38,19 @@ def parse_react_admin_params(model: DeclarativeMeta) -> RequestParams:
             elif sort_order.lower() == "desc":
                 direction = desc
             else:
-                raise HTTPException(400, f"Invalid sort direction {sort_order}")
-            order_by = direction(model.__table__.c[sort_column])
+                logger.error(f"Invalid sort direction ({sort_order})")
+                raise HTTPException(400, f"Invalid sort direction ({sort_order})")
+            try:
+                order_by = direction(model.__table__.c[sort_column])
+            except KeyError:
+                logger.error(f"Invalid sort column ({sort_column}) for {model}")
+                raise HTTPException(400, f"Invalid sort column ({sort_column})")
+        else:
+            try:
+                order_by = desc(model.id)
+            except AttributeError:
+                logger.error(f"Default sort column (id) is invalid for {model}")
+                raise HTTPException(400, f"Default sort column (id) is invalid")
 
         return RequestParams(skip=skip, limit=limit, order_by=order_by)
 

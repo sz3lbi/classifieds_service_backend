@@ -1,6 +1,5 @@
-from os import stat
 from typing import Any, List
-from fastapi import HTTPException
+from fastapi import HTTPException, Security
 from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.routing import APIRouter
@@ -10,6 +9,7 @@ from starlette.responses import Response
 from fastapi_login.exceptions import InvalidCredentialsException
 
 from app.deps.db import get_db
+from app.deps.scopes import query_user_scopes
 from app.deps.users import (
     manager,
     verify_password,
@@ -33,8 +33,12 @@ def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depen
     user = query_user_by_email(email, db)
     if not user or not verify_password(password, user.hashed_password):
         raise InvalidCredentialsException
+    user_scopes = query_user_scopes(user, db)
+    user_scopes_names = [user_scope.name for user_scope in user_scopes]
 
-    access_token = manager.create_access_token(data={"sub": str(user.id)})
+    access_token = manager.create_access_token(
+        data={"sub": str(user.id)}, scopes=user_scopes_names
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -67,16 +71,8 @@ def get_users(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["users_get"]),
 ) -> Any:
-
-    if user is None:
-        logger.info("Unauthorized user tried to get users list.")
-        raise HTTPException(401)
-    elif not user.is_superuser:
-        logger.info(f"Not-superuser {user} tried to get users list.")
-        raise HTTPException(401)
-
     total = db.scalar(select(func.count(User.id)))
     users = db.execute(select(User).offset(skip).limit(limit)).scalars().all()
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"

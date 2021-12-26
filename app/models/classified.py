@@ -19,23 +19,26 @@ class Classified(Base):
 
     id = Column(Integer, primary_key=True)
 
-    created = Column(DateTime(timezone=True), server_default=func.now())
+    created = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
     )
 
-    title = Column(String(length=32))
-    content = Column(String(length=8192))
-    price = Column(Numeric(16, 2))
-    status = Column(Enum(ClassifiedStatus))
+    title = Column(String(length=32), nullable=False)
+    content = Column(String(length=8192), nullable=False)
+    price = Column(Numeric(16, 2), nullable=False)
+    status = Column(Enum(ClassifiedStatus), nullable=False)
 
-    user_id = Column(UUID, ForeignKey("users.id"))
+    user_id = Column(UUID, ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="classifieds")
 
-    category_id = Column(Integer, ForeignKey("categories.id"))
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
     category = relationship("Category", back_populates="classifieds")
 
-    city_id = Column(Integer, ForeignKey("cities.id"))
+    city_id = Column(Integer, ForeignKey("cities.id"), nullable=False)
     city = relationship("City", back_populates="classifieds")
 
     images = relationship("Image", back_populates="classified", cascade="all, delete")

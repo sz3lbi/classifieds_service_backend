@@ -10,12 +10,14 @@ from passlib.context import CryptContext
 
 from app.models.user import User
 from app.core.config import settings
-from app.deps.db import ContextManager
+from app.deps.db import DBSessionManager
+from app.deps.scopes import query_scopes_dict
 
 manager = LoginManager(
     secret=settings.SECRET_KEY,
     token_url="/login",
     default_expiry=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    scopes=query_scopes_dict(),
 )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -30,15 +32,19 @@ def get_password_hash(password):
 
 
 @manager.user_loader()
-def query_user(id: UUID, db_session: Session = None):
+def query_user(user_id: UUID, db_session: Session = None):
     if not db_session:
-        with ContextManager() as db_session:
+        with DBSessionManager() as db_session:
             user = (
-                db_session.execute(select(User).where(User.id == id)).scalars().first()
+                db_session.execute(select(User).where(User.id == user_id))
+                .scalars()
+                .first()
             )
             return user
     try:
-        user = db_session.execute(select(User).where(User.id == id)).scalars().first()
+        user = (
+            db_session.execute(select(User).where(User.id == user_id)).scalars().first()
+        )
     except:
         return None
     return user

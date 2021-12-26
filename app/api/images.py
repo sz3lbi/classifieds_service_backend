@@ -8,7 +8,9 @@ from fastapi import (
     File,
     UploadFile,
     Security,
+    Form,
 )
+from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
@@ -21,7 +23,6 @@ from app.models.classified import Classified
 from app.models.image import Image
 from app.models.user import User
 from app.schemas.image import Image as ImageSchema
-from app.schemas.image import ImageCreate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
 from app.core.config import settings
@@ -61,12 +62,12 @@ def get_classified_images(
         raise HTTPException(404)
 
     total = db.scalar(
-        select(func.count(Image.id)).where(classified in Image.classifieds)
+        select(func.count(Image.id)).where(Image.classified == classified)
     )
     images = (
         db.execute(
             select(Image)
-            .where(classified in Image.classifieds)
+            .where(Image.classified == classified)
             .offset(request_params.skip)
             .limit(request_params.limit)
             .order_by(request_params.order_by)
@@ -92,12 +93,12 @@ def get_classified_images(
     status_code=201,
 )
 def create_image(
-    image_in: ImageCreate,
+    classified_id: int = Form(...),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     user: User = Security(manager, scopes=["images_create"]),
 ) -> Any:
-    classified: Optional[Classified] = db.get(Classified, image_in.classified_id)
+    classified: Optional[Classified] = db.get(Classified, classified_id)
     if not classified:
         raise HTTPException(404)
     if classified.user_id != user.id:
@@ -129,18 +130,19 @@ def create_image(
     return image
 
 
-# @router.get("/{image_id}", response_model=ImageSchema)
-# def get_image(
-#     image_id: int,
-#     db: Session = Depends(get_db),
-#     user: User = Depends(manager),
-# ) -> Any:
-#     image: Optional[Image] = db.get(Image, image_id)
-#     if not image:
-#         raise HTTPException(404)
+@router.get("/{image_id}", response_class=FileResponse)
+def get_image_file(
+    image_id: int,
+    db: Session = Depends(get_db),
+) -> Any:
+    image: Optional[Image] = db.get(Image, image_id)
+    if not image:
+        raise HTTPException(404)
 
-#     logger.info(f"User {user} getting image (ID {image.id})")
-#     return image
+    file_path = f"{settings.IMAGES_UPLOAD_PATH}{image.filename}{image.extension}"
+
+    logger.info(f"Getting image {file_path} (ID {image.id})")
+    return file_path
 
 
 @router.delete("/{image_id}")
@@ -156,7 +158,8 @@ def delete_image(
         raise HTTPException(401)
 
     try:
-        os.remove(f"{settings.IMAGES_UPLOAD_PATH}{image.filename}{image.extension}")
+        file_path = f"{settings.IMAGES_UPLOAD_PATH}{image.filename}{image.extension}"
+        os.remove(file_path)
     except FileNotFoundError:
         logger.error(f"File not found when deleting image (ID {image.id})")
 

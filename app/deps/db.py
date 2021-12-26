@@ -1,7 +1,7 @@
 from app.db import SessionLocal
 
 
-class ContextManager:
+class DBSessionManager:
     def __init__(self):
         self.db = SessionLocal(future=True)
 
@@ -13,5 +13,5 @@ class ContextManager:
 
 
 async def get_db():
-    with ContextManager() as db:
+    with DBSessionManager() as db:
         yield db

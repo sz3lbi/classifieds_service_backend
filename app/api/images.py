@@ -120,7 +120,6 @@ def create_image(
 
     image = Image(filename=filename, extension=extension)
     image.classified_id = classified.id
-    image.user_id = user.id
     db.add(image)
     db.commit()
 

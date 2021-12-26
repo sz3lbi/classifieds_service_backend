@@ -10,7 +10,6 @@ class Image(ImageCreate):
     id: int
     filename: UUID
     extension: str = Field(max_length=8)
-    user_id: int
 
     class Config:
         orm_mode = True

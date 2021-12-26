@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
@@ -48,13 +48,13 @@ def get_categories(
 def create_category(
     category_in: CategoryCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["categories_create"]),
 ) -> Any:
     category = Category(**category_in.dict())
     db.add(category)
     db.commit()
 
-    logger.info(f"User {user} creating category {category.name} (ID {category.id})")
+    logger.info(f"{user} creating category {category.name} (ID {category.id})")
     return category
 
 
@@ -63,7 +63,7 @@ def update_category(
     category_id: int,
     category_in: CategoryUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["categories_update"]),
 ) -> Any:
     category: Optional[Category] = db.get(Category, category_id)
     if not category:
@@ -74,7 +74,7 @@ def update_category(
     db.add(category)
     db.commit()
 
-    logger.info(f"User {user} updating category (ID {category.id})")
+    logger.info(f"{user} updating category (ID {category.id})")
     return category
 
 
@@ -95,7 +95,7 @@ def get_category(
 def delete_category(
     category_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["categories_delete"]),
 ) -> Any:
     category: Optional[Category] = db.get(Category, category_id)
     if not category:
@@ -103,5 +103,5 @@ def delete_category(
     db.delete(category)
     db.commit()
 
-    logger.info(f"User {user} deleting category (ID {category.id})")
+    logger.info(f"{user} deleting category (ID {category.id})")
     return {"success": True}

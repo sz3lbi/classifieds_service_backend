@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
@@ -48,15 +48,13 @@ def get_voivodeships(
 def create_voivodeship(
     voivodeship_in: VoivodeshipCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["voivodeships_create"]),
 ) -> Any:
     voivodeship = Voivodeship(**voivodeship_in.dict())
     db.add(voivodeship)
     db.commit()
 
-    logger.info(
-        f"User {user} creating voivodeship {voivodeship.name} (ID {voivodeship.id})"
-    )
+    logger.info(f"{user} creating voivodeship {voivodeship.name} (ID {voivodeship.id})")
     return voivodeship
 
 
@@ -65,7 +63,7 @@ def update_voivodeship(
     voivodeship_id: int,
     voivodeship_in: VoivodeshipUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["voivodeships_update"]),
 ) -> Any:
     voivodeship: Optional[Voivodeship] = db.get(Voivodeship, voivodeship_id)
     if not voivodeship:
@@ -76,7 +74,7 @@ def update_voivodeship(
     db.add(voivodeship)
     db.commit()
 
-    logger.info(f"User {user} updating voivodeship (ID {voivodeship.id})")
+    logger.info(f"{user} updating voivodeship (ID {voivodeship.id})")
     return voivodeship
 
 
@@ -97,7 +95,7 @@ def get_voivodeship(
 def delete_voivodeship(
     voivodeship_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["voivodeships_delete"]),
 ) -> Any:
     voivodeship: Optional[Voivodeship] = db.get(Voivodeship, voivodeship_id)
     if not voivodeship:
@@ -105,5 +103,5 @@ def delete_voivodeship(
     db.delete(voivodeship)
     db.commit()
 
-    logger.info(f"User {user} deleting voivodeship (ID {voivodeship.id})")
+    logger.info(f"{user} deleting voivodeship (ID {voivodeship.id})")
     return {"success": True}

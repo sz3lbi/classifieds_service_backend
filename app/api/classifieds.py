@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
@@ -30,7 +30,9 @@ def get_category_classifieds(
     if not category:
         raise HTTPException(404)
 
-    total = db.scalar(select(func.count(Classified.id)))
+    total = db.scalar(
+        select(func.count(Classified.id)).where(Classified.category == category)
+    )
     classifieds = (
         db.execute(
             select(Classified)
@@ -57,16 +59,14 @@ def get_category_classifieds(
 def create_classified(
     classified_in: ClassifiedCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["classifieds_create"]),
 ) -> Any:
     classified = Classified(**classified_in.dict())
     classified.user_id = user.id
     db.add(classified)
     db.commit()
 
-    logger.info(
-        f"User {user} creating classified {classified.name} (ID {classified.id})"
-    )
+    logger.info(f"{user} creating classified {classified.title} (ID {classified.id})")
     return classified
 
 
@@ -75,18 +75,20 @@ def update_classified(
     classified_id: int,
     classified_in: ClassifiedUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["classifieds_update"]),
 ) -> Any:
     classified: Optional[Classified] = db.get(Classified, classified_id)
-    if not classified or (classified.user_id != user.id and not user.is_superuser):
+    if not classified:
         raise HTTPException(404)
+    if classified.user_id != user.id and not user.is_superuser:
+        raise HTTPException(401)
     update_data = classified_in.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(classified, field, value)
     db.add(classified)
     db.commit()
 
-    logger.info(f"User {user} updating classified (ID {classified.id})")
+    logger.info(f"{user} updating classified (ID {classified.id})")
     return classified
 
 
@@ -107,13 +109,15 @@ def get_classified(
 def delete_classified(
     classified_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(manager),
+    user: User = Security(manager, scopes=["classifieds_delete"]),
 ) -> Any:
     classified: Optional[Classified] = db.get(Classified, classified_id)
-    if not classified or (classified.user_id != user.id and not user.is_superuser):
+    if not classified:
         raise HTTPException(404)
+    if classified.user_id != user.id and not user.is_superuser:
+        raise HTTPException(401)
     db.delete(classified)
     db.commit()
 
-    logger.info(f"User {user} deleting classified (ID {classified.id})")
+    logger.info(f"{user} deleting classified (ID {classified.id})")
     return {"success": True}

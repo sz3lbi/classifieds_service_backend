@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from uuid import UUID
 
 
@@ -9,7 +9,8 @@ class ImageCreate(BaseModel):
 class Image(ImageCreate):
     id: int
     filename: UUID
-    extension: str
+    extension: str = Field(max_length=8)
+    user_id: int
 
     class Config:
         orm_mode = True

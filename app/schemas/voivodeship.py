@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class VoivodeshipCreate(BaseModel):
-    name: str
+    name: str = Field(max_length=32)
 
 
 class VoivodeshipUpdate(VoivodeshipCreate):

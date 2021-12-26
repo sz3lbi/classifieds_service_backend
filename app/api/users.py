@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import HTTPException, Security
 from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordRequestForm
@@ -18,9 +18,12 @@ from app.deps.users import (
     query_user_by_email,
 )
 from app.models.user import User
+from app.models.user_scope import UserScope
 from app.schemas.user import User as UserSchema
 from app.schemas.user import UserCreate
+from app.models.scope import Scope
 from app.core.logger import logger
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -60,8 +63,21 @@ def register(
     user = User(email=user_in.email, hashed_password=hashed_password)
     db.add(user)
     db.commit()
+    logger.info(f"{user} has registered.")
 
-    logger.info(f"User {user.email} (ID {user.id}) has registered.")
+    for scope_name in settings.USER_DEFAULT_SCOPES:
+        scope: Optional[Scope] = db.get(Scope, scope_name)
+        if not scope:
+            logger.error(
+                f"User default scope {scope_name} does not exist in the database."
+            )
+            continue
+        user_scope = UserScope(user_id=user.id, scope_name=scope.name)
+        db.add(user_scope)
+
+    db.commit()
+    logger.info(f"User default scopes for {user} has been added.")
+
     return user
 
 

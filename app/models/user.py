@@ -28,7 +28,6 @@ class User(Base):
     classifieds = relationship(
         "Classified", back_populates="user", cascade="all, delete"
     )
-    images = relationship("Image", back_populates="user", cascade="all, delete")
     users_scopes = relationship(
         "UserScope", back_populates="user", cascade="all, delete"
     )

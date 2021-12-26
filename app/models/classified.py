@@ -32,7 +32,7 @@ class Classified(Base):
     price = Column(Numeric(16, 2), nullable=False)
     status = Column(Enum(ClassifiedStatus), nullable=False)
 
-    user_id = Column(UUID, ForeignKey("users.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="classifieds")
 
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)

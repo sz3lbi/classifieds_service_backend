@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # Images upload
 
     IMAGES_MAX_SIZE: int = 5_000_000  # 5 MB
+    IMAGES_CONTENT_TYPES: List[str] = ["image/png", "image/jpeg"]
     IMAGES_UPLOAD_PATH: str = "uploads/"
 
     # Logging config

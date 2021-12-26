@@ -107,7 +107,7 @@ def create_image(
         )
         raise HTTPException(401)
 
-    if file.content_type not in ["image/png", "image/jpeg"]:
+    if file.content_type not in settings.IMAGES_CONTENT_TYPES:
         logger.error(f"{user} tried to create image of type {file.content_type}")
         raise HTTPException(
             status_code=400,

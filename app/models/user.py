@@ -31,7 +31,7 @@ class User(Base):
     users_scopes = relationship(
         "UserScope", back_populates="user", cascade="all, delete"
     )
-    messages = relationship("Message", back_populates="user", cascade="all, delete")
+    messages = relationship("Message", back_populates="author", cascade="all, delete")
     conversations_users = relationship(
         "ConversationUser", back_populates="user", cascade="all, delete"
     )

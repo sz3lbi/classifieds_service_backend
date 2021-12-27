@@ -9,3 +9,6 @@ from app.models.user import User
 from app.models.voivodeship import Voivodeship
 from app.models.scope import Scope
 from app.models.user_scope import UserScope
+from app.models.conversation import Conversation
+from app.models.message import Message
+from app.models.conversations_users import ConversationUser

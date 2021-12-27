@@ -1,5 +1,4 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.schema import Column, ForeignKey
 from sqlalchemy.sql.sqltypes import Integer, String
 

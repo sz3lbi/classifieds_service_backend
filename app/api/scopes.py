@@ -59,7 +59,7 @@ def get_user_scopes(
     if not user_queried:
         raise HTTPException(404)
 
-    user_scopes = query_user_scopes(user_queried.id, db)
+    user_scopes = query_user_scopes(user_queried, db)
     user_scopes_names = [user_scope.scope_name for user_scope in user_scopes]
 
     total = db.scalar(

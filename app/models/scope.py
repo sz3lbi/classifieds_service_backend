@@ -8,7 +8,7 @@ from app.db import Base
 class Scope(Base):
     __tablename__ = "scopes"
 
-    name = Column(String(length=32), primary_key=True)
+    scope_name = Column(String(length=32), primary_key=True)
     description = Column(String(length=128), nullable=False)
 
     users_scopes = relationship(

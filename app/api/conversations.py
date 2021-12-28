@@ -15,7 +15,6 @@ from app.schemas.conversation import Conversation as ConversationSchema
 from app.schemas.conversation import ConversationCreate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
-from app.deps.conversations import query_user_conversations
 
 router = APIRouter(prefix="/conversations")
 
@@ -34,25 +33,27 @@ def get_user_conversations(
     if user_queried.id != user.id and not user.is_superuser:
         raise HTTPException(401)
 
-    user_conversations = query_user_conversations(user_queried, db)
+    user_conversations = user_queried.conversations_users
     conversations_ids = [
         user_conversation.conversation_id for user_conversation in user_conversations
     ]
 
-    total = db.scalar(
-        select(func.count(Conversation.id)).where(Conversation.id in conversations_ids)
+    total = (
+        db.query(func.count(Conversation.id))
+        .filter(Conversation.id.in_(conversations_ids))
+        .scalar()
+    )
+    query_conversations = (
+        db.query(Conversation)
+        .filter(Conversation.id.in_(conversations_ids))
+        .order_by(request_params.order_by)
     )
     conversations = (
-        db.execute(
-            select(Conversation)
-            .where(Conversation.id in conversations_ids)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
+        query_conversations.offset(request_params.skip)
+        .limit(request_params.limit)
         .all()
     )
+
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"

@@ -10,7 +10,7 @@ expire_time = timedelta(days=settings.CLASSIFIED_EXPIRE_TIME_DAYS)
 def hide_expired_classifieds():
     with DBSessionManager() as db:
         elapsed = (Classified.updated - Classified.created).label("elapsed")
-        query_classifieds = db.query(elapsed).filter(elapsed >= expire_time)
+        query_classifieds = db.query(Classified).filter(elapsed >= expire_time)
         classifieds = query_classifieds.all()
         for classified in classifieds:
             classified.status = ClassifiedStatus.hidden

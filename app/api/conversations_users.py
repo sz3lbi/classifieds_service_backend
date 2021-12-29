@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy import func, select, asc
+from sqlalchemy import func
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
@@ -152,7 +152,7 @@ def create_conversation_user(
     return conversation_user
 
 
-@router.delete("conversation/{conversation_id}/user/{user_id}")
+@router.delete("/conversation/{conversation_id}/user/{user_id}")
 def delete_conversation_user(
     conversation_id: int,
     user_id: UUID,

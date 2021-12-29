@@ -16,6 +16,8 @@ class Settings(BaseSettings):
 
     PASSWORD_MIN_LENGTH: int = 12
 
+    CLASSIFIED_EXPIRE_TIME_DAYS: int = 30
+
     # Authorization
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 7 * 24 * 60  # 7 days

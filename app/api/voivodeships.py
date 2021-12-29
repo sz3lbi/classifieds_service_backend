@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
@@ -24,23 +24,17 @@ def get_voivodeships(
     db: Session = Depends(get_db),
     request_params: RequestParams = Depends(parse_react_admin_params(Voivodeship)),
 ) -> Any:
-    total = db.scalar(select(func.count(Voivodeship.id)))
+    total = db.query(func.count(Voivodeship.id)).scalar()
+    query_voivodeships = db.query(Voivodeship).order_by(request_params.order_by)
     voivodeships = (
-        db.execute(
-            select(Voivodeship)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
-        .all()
+        query_voivodeships.offset(request_params.skip).limit(request_params.limit).all()
     )
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(voivodeships)}/{total}"
 
-    logger.info(f"Getting all voivodeships with status code {response.status_code}")
+    logger.info(f"Getting all voivodeships")
     return voivodeships
 
 
@@ -74,7 +68,7 @@ def update_voivodeship(
     db.add(voivodeship)
     db.commit()
 
-    logger.info(f"{user} updating voivodeship (ID {voivodeship.id})")
+    logger.info(f"{user} updating voivodeship ID {voivodeship.id}")
     return voivodeship
 
 
@@ -87,7 +81,7 @@ def get_voivodeship(
     if not voivodeship:
         raise HTTPException(404)
 
-    logger.info(f"Getting voivodeship (ID {voivodeship.id})")
+    logger.info(f"Getting voivodeship ID {voivodeship.id}")
     return voivodeship
 
 
@@ -103,5 +97,5 @@ def delete_voivodeship(
     db.delete(voivodeship)
     db.commit()
 
-    logger.info(f"{user} deleting voivodeship (ID {voivodeship.id})")
+    logger.info(f"{user} deleting voivodeship ID {voivodeship.id}")
     return {"success": True}

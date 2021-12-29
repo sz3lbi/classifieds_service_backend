@@ -11,7 +11,7 @@ from fastapi import (
     Form,
 )
 from fastapi.responses import FileResponse
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 from pathlib import Path
@@ -61,28 +61,23 @@ def get_classified_images(
     if not classified:
         raise HTTPException(404)
 
-    total = db.scalar(
-        select(func.count(Image.id)).where(Image.classified == classified)
+    total = (
+        db.query(func.count(Image.id))
+        .filter(Image.classified_id == classified.id)
+        .scalar()
     )
-    images = (
-        db.execute(
-            select(Image)
-            .where(Image.classified == classified)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
-        .all()
+    query_images = (
+        db.query(Image)
+        .filter(Image.classified_id == classified.id)
+        .order_by(request_params.order_by)
     )
+    images = query_images.offset(request_params.skip).limit(request_params.limit).all()
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(images)}/{total}"
 
-    logger.info(
-        f"Getting images for classified {classified_id} with status code {response.status_code}"
-    )
+    logger.info(f"Getting images for classified {classified_id}")
     return images
 
 

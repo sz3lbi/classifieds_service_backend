@@ -3,12 +3,13 @@ from fastapi import HTTPException, Security
 from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.routing import APIRouter
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 from fastapi_login.exceptions import InvalidCredentialsException
 
 from app.deps.db import get_db
+from app.deps.request_params import parse_react_admin_params
 from app.deps.scopes import query_scope_names_for_user
 from app.deps.users import (
     manager,
@@ -19,6 +20,7 @@ from app.deps.users import (
 )
 from app.models.user import User
 from app.models.user_scope import UserScope
+from app.schemas import request_params
 from app.schemas.user import User as UserSchema
 from app.schemas.user import UserCreate
 from app.models.scope import Scope
@@ -84,14 +86,16 @@ def register(
 def get_users(
     response: Response,
     db: Session = Depends(get_db),
-    skip: int = 0,
-    limit: int = 100,
     user: User = Security(manager, scopes=["users_get"]),
+    request_params: request_params = Depends(parse_react_admin_params(User)),
 ) -> Any:
-    total = db.scalar(select(func.count(User.id)))
-    users = db.execute(select(User).offset(skip).limit(limit)).scalars().all()
+    total = db.query(func.count(User.id)).scalar()
+    query_users = db.query(User).order_by(request_params.order_by)
+    users = query_users.offset(request_params.skip).limit(request_params.limit).all()
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
-    response.headers["Content-Range"] = f"{skip}-{skip + len(users)}/{total}"
+    response.headers[
+        "Content-Range"
+    ] = f"{request_params.skip}-{request_params.skip + len(users)}/{total}"
 
-    logger.info(f"{user} getting all users with status code {response.status_code}")
+    logger.info(f"{user} getting all users")
     return users

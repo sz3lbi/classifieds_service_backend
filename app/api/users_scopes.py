@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
@@ -26,25 +26,17 @@ def get_users_scopes(
     user: User = Security(manager, scopes=["users_scopes_get"]),
     request_params: RequestParams = Depends(parse_react_admin_params(UserScope)),
 ) -> Any:
-    total = db.scalar(select(func.count(UserScope.scope_name)))
+    total = db.query(func.count(UserScope.scope_name)).scalar()
+    query_users_scopes = db.query(UserScope).order_by(request_params.order_by)
     users_scopes = (
-        db.execute(
-            select(UserScope)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
-        .all()
+        query_users_scopes.offset(request_params.skip).limit(request_params.limit).all()
     )
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(users_scopes)}/{total}"
 
-    logger.info(
-        f"{user} getting all users_scopes with status code {response.status_code}"
-    )
+    logger.info(f"{user} getting all users_scopes")
     return users_scopes
 
 
@@ -60,28 +52,25 @@ def get_users_scopes_for_user(
     if not user_queried:
         raise HTTPException(404)
 
-    total = db.scalar(
-        select(func.count(UserScope.id)).where(UserScope.user_id == user_queried.id)
+    total = (
+        db.query(func.count(UserScope.user_id))
+        .filter(UserScope.user_id == user_queried.id)
+        .scalar()
+    )
+    query_users_scopes = (
+        db.query(UserScope)
+        .filter(UserScope.user_id == user_queried.id)
+        .order_by(request_params.order_by)
     )
     users_scopes = (
-        db.execute(
-            select(UserScope)
-            .where(UserScope.user_id == user_queried.id)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
-        .all()
+        query_users_scopes.offset(request_params.skip).limit(request_params.limit).all()
     )
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(users_scopes)}/{total}"
 
-    logger.info(
-        f"{user} getting users_scopes for user ID {user_queried.id} with status code {response.status_code}"
-    )
+    logger.info(f"{user} getting users_scopes for user ID {user_queried.id}")
     return users_scopes
 
 

@@ -1,5 +1,4 @@
 from typing import List
-from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 from app.deps.db import DBSessionManager
 
@@ -11,10 +10,12 @@ from app.models.scope import Scope
 def query_scopes(db_session: Session = None):
     if not db_session:
         with DBSessionManager() as db_session:
-            scopes = db_session.execute(select(Scope)).scalars().all()
+            query_scopes = db_session.query(Scope)
+            scopes = query_scopes.all()
             return scopes
     try:
-        scopes = db_session.execute(select(Scope)).scalars().all()
+        query_scopes = db_session.query(Scope)
+        scopes = query_scopes.all()
     except:
         return None
     return scopes
@@ -34,10 +35,7 @@ def query_scope_names_for_user(user: User, db_session: Session) -> List[str]:
         names = [scope.scope_name for scope in scopes]
         return names
 
-    user_scopes = (
-        db_session.execute(select(UserScope).where(UserScope.user_id == user.id))
-        .scalars()
-        .all()
-    )
+    query_user_scopes = db_session.query(UserScope).filter(UserScope.user_id == user.id)
+    user_scopes = query_user_scopes.all()
     names = [user_scope.scope_name for user_scope in user_scopes]
     return names

@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
@@ -27,23 +27,15 @@ def get_scopes(
     user: User = Security(manager, scopes=["scopes_get"]),
     request_params: RequestParams = Depends(parse_react_admin_params(Scope)),
 ) -> Any:
-    total = db.scalar(select(func.count(Scope.name)))
-    scopes = (
-        db.execute(
-            select(Scope)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
-        .all()
-    )
+    total = db.query(func.count(Scope.scope_name)).scalar()
+    query_scopes = db.query(Scope).order_by(request_params.order_by)
+    scopes = query_scopes.offset(request_params.skip).limit(request_params.limit).all()
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(scopes)}/{total}"
 
-    logger.info(f"{user} getting all scopes with status code {response.status_code}")
+    logger.info(f"{user} getting all scopes")
     return scopes
 
 
@@ -61,26 +53,23 @@ def get_user_scopes(
 
     scope_names = query_scope_names_for_user(user_queried, db)
 
-    total = db.scalar(select(func.count(Scope.name)).where(Scope.name in scope_names))
-    scopes = (
-        db.execute(
-            select(Scope)
-            .where(Scope.name in scope_names)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
-        .all()
+    total = (
+        db.query(func.count(Scope.scope_name))
+        .filter(Scope.scope_name.in_(scope_names))
+        .scalar()
     )
+    query_scopes = (
+        db.query(Scope)
+        .filter(Scope.scope_name.in_(scope_names))
+        .order_by(request_params.order_by)
+    )
+    scopes = query_scopes.offset(request_params.skip).limit(request_params.limit).all()
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(scopes)}/{total}"
 
-    logger.info(
-        f"{user} getting scopes for {user_queried} with status code {response.status_code}"
-    )
+    logger.info(f"{user} getting scopes for {user_queried}")
     return scopes
 
 
@@ -94,7 +83,7 @@ def create_scope(
     db.add(scope)
     db.commit()
 
-    logger.info(f"{user} creating scope {scope.name}")
+    logger.info(f"{user} creating scope {scope.scope_name}")
     return scope
 
 
@@ -114,7 +103,7 @@ def update_scope(
     db.add(scope)
     db.commit()
 
-    logger.info(f"{user} updating scope {scope.name}")
+    logger.info(f"{user} updating scope {scope.scope_name}")
     return scope
 
 
@@ -128,5 +117,5 @@ def get_scope(
     if not scope:
         raise HTTPException(404)
 
-    logger.info(f"{user} getting scope {scope.name}")
+    logger.info(f"{user} getting scope {scope.scope_name}")
     return scope

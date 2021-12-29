@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
@@ -30,28 +30,25 @@ def get_category_classifieds(
     if not category:
         raise HTTPException(404)
 
-    total = db.scalar(
-        select(func.count(Classified.id)).where(Classified.category == category)
+    total = (
+        db.query(func.count(Classified.id))
+        .filter(Classified.category == category)
+        .scalar()
+    )
+    query_classifieds = (
+        db.query(Classified)
+        .filter(Classified.category == category)
+        .order_by(request_params.order_by)
     )
     classifieds = (
-        db.execute(
-            select(Classified)
-            .where(Classified.category == category)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
-        .all()
+        query_classifieds.offset(request_params.skip).limit(request_params.limit).all()
     )
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(classifieds)}/{total}"
 
-    logger.info(
-        f"Getting all classifieds for category {category.name} with status code {response.status_code}"
-    )
+    logger.info(f"Getting all classifieds for category {category.name}")
     return classifieds
 
 

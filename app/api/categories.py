@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
@@ -24,23 +24,17 @@ def get_categories(
     db: Session = Depends(get_db),
     request_params: RequestParams = Depends(parse_react_admin_params(Category)),
 ) -> Any:
-    total = db.scalar(select(func.count(Category.id)))
+    total = db.query(func.count(Category.id)).scalar()
+    query_categories = db.query(Category).order_by(request_params.order_by)
     categories = (
-        db.execute(
-            select(Category)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
-        .all()
+        query_categories.offset(request_params.skip).limit(request_params.limit).all()
     )
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(categories)}/{total}"
 
-    logger.info(f"Getting all categories with status code {response.status_code}")
+    logger.info(f"Getting all categories")
     return categories
 
 
@@ -54,7 +48,7 @@ def create_category(
     db.add(category)
     db.commit()
 
-    logger.info(f"{user} creating category {category.name} (ID {category.id})")
+    logger.info(f"{user} creating category {category.name} ID {category.id}")
     return category
 
 
@@ -74,7 +68,7 @@ def update_category(
     db.add(category)
     db.commit()
 
-    logger.info(f"{user} updating category (ID {category.id})")
+    logger.info(f"{user} updating category ID {category.id}")
     return category
 
 
@@ -87,7 +81,7 @@ def get_category(
     if not category:
         raise HTTPException(404)
 
-    logger.info(f"Getting category (ID {category.id})")
+    logger.info(f"Getting category ID {category.id}")
     return category
 
 
@@ -103,5 +97,5 @@ def delete_category(
     db.delete(category)
     db.commit()
 
-    logger.info(f"{user} deleting category (ID {category.id})")
+    logger.info(f"{user} deleting category ID {category.id}")
     return {"success": True}

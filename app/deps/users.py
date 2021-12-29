@@ -1,7 +1,6 @@
 from datetime import timedelta
 from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 from fastapi import HTTPException
 from fastapi_login import LoginManager
@@ -35,23 +34,20 @@ def get_password_hash(password):
 def query_user(user_id: UUID, db_session: Session = None):
     if not db_session:
         with DBSessionManager() as db_session:
-            user = (
-                db_session.execute(select(User).where(User.id == user_id))
-                .scalars()
-                .first()
-            )
+            query_user = db_session.query(User).filter(User.id == user_id)
+            user = query_user.first()
             return user
     try:
-        user = (
-            db_session.execute(select(User).where(User.id == user_id)).scalars().first()
-        )
+        query_user = db_session.query(User).filter(User.id == user_id)
+        user = query_user.first()
     except:
         return None
     return user
 
 
 def query_user_by_email(email: EmailStr, db_session: Session):
-    user = db_session.execute(select(User).where(User.email == email)).scalars().first()
+    query_user = db_session.query(User).filter(User.email == email)
+    user = query_user.first()
     return user
 
 

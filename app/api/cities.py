@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
@@ -24,23 +24,15 @@ def get_cities(
     db: Session = Depends(get_db),
     request_params: RequestParams = Depends(parse_react_admin_params(City)),
 ) -> Any:
-    total = db.scalar(select(func.count(City.id)))
-    cities = (
-        db.execute(
-            select(City)
-            .offset(request_params.skip)
-            .limit(request_params.limit)
-            .order_by(request_params.order_by)
-        )
-        .scalars()
-        .all()
-    )
+    total = db.query(func.count(City.id)).scalar()
+    query_cities = db.query(City).order_by(request_params.order_by)
+    cities = query_cities.offset(request_params.skip).limit(request_params.limit).all()
     response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     response.headers[
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(cities)}/{total}"
 
-    logger.info(f"Getting all cities with status code {response.status_code}")
+    logger.info(f"Getting all cities")
     return cities
 
 

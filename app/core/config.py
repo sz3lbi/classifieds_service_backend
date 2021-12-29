@@ -25,6 +25,8 @@ class Settings(BaseSettings):
         "classifieds_delete",
         "images_create",
         "images_delete",
+        "conversations_get",
+        "conversations_create",
     ]
 
     # Images upload

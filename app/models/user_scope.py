@@ -11,5 +11,7 @@ class UserScope(Base):
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True)
     user = relationship("User", back_populates="users_scopes")
-    scope_name = Column(String(length=32), ForeignKey("scopes.name"), primary_key=True)
+    scope_name = Column(
+        String(length=32), ForeignKey("scopes.scope_name"), primary_key=True
+    )
     scope = relationship("Scope", back_populates="users_scopes")

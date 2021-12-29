@@ -31,6 +31,10 @@ class User(Base):
     users_scopes = relationship(
         "UserScope", back_populates="user", cascade="all, delete"
     )
+    messages = relationship("Message", back_populates="author", cascade="all, delete")
+    conversations_users = relationship(
+        "ConversationUser", back_populates="user", cascade="all, delete"
+    )
 
     def __repr__(self):
         return f"User(id={repr(self.id)}, name={repr(self.email)})"

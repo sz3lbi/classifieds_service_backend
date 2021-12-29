@@ -7,7 +7,7 @@ from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
 from app.deps.db import get_db
-from app.deps.scopes import query_user_scopes
+from app.deps.scopes import query_scope_names_for_user
 from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
 from app.models.scope import Scope
@@ -59,16 +59,13 @@ def get_user_scopes(
     if not user_queried:
         raise HTTPException(404)
 
-    user_scopes = query_user_scopes(user_queried.id, db)
-    user_scopes_names = [user_scope.scope_name for user_scope in user_scopes]
+    scope_names = query_scope_names_for_user(user_queried, db)
 
-    total = db.scalar(
-        select(func.count(Scope.name)).where(Scope.name in user_scopes_names)
-    )
+    total = db.scalar(select(func.count(Scope.name)).where(Scope.name in scope_names))
     scopes = (
         db.execute(
             select(Scope)
-            .where(Scope.name in user_scopes_names)
+            .where(Scope.name in scope_names)
             .offset(request_params.skip)
             .limit(request_params.limit)
             .order_by(request_params.order_by)

@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class ScopeCreate(BaseModel):
-    name: str = Field(max_length=32)
+    scope_name: str = Field(max_length=32)
     description: str = Field(max_length=128)
 
 

@@ -9,7 +9,7 @@ from starlette.responses import Response
 from fastapi_login.exceptions import InvalidCredentialsException
 
 from app.deps.db import get_db
-from app.deps.scopes import query_user_scopes
+from app.deps.scopes import query_scope_names_for_user
 from app.deps.users import (
     manager,
     verify_password,
@@ -36,11 +36,10 @@ def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depen
     user = query_user_by_email(email, db)
     if not user or not verify_password(password, user.hashed_password):
         raise InvalidCredentialsException
-    user_scopes = query_user_scopes(user, db)
-    user_scopes_names = [user_scope.name for user_scope in user_scopes]
+    scope_names = query_scope_names_for_user(user, db)
 
     access_token = manager.create_access_token(
-        data={"sub": str(user.id)}, scopes=user_scopes_names
+        data={"sub": str(user.id)}, scopes=scope_names
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -72,7 +71,7 @@ def register(
                 f"User default scope {scope_name} does not exist in the database."
             )
             continue
-        user_scope = UserScope(user_id=user.id, scope_name=scope.name)
+        user_scope = UserScope(user_id=user.id, scope_name=scope.scope_name)
         db.add(user_scope)
 
     db.commit()

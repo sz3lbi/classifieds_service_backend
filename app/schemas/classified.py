@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -20,7 +21,7 @@ class ClassifiedUpdate(ClassifiedCreate):
 
 class Classified(ClassifiedCreate):
     id: int
-    user_id: int
+    user_id: UUID
 
     class Config:
         orm_mode = True

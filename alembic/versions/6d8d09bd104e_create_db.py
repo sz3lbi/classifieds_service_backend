@@ -1,8 +1,8 @@
 """create db
 
-Revision ID: 88ff0dede1d9
+Revision ID: 6d8d09bd104e
 Revises: 
-Create Date: 2021-12-25 21:14:02.273925
+Create Date: 2021-12-28 22:20:49.442524
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '88ff0dede1d9'
+revision = '6d8d09bd104e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,10 +25,15 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
+    op.create_table('conversations',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('subject', sa.String(length=64), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('scopes',
-    sa.Column('name', sa.String(length=32), nullable=False),
+    sa.Column('scope_name', sa.String(length=32), nullable=False),
     sa.Column('description', sa.String(length=128), nullable=False),
-    sa.PrimaryKeyConstraint('name')
+    sa.PrimaryKeyConstraint('scope_name')
     )
     op.create_table('users',
     sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -53,10 +58,28 @@ def upgrade():
     sa.ForeignKeyConstraint(['voivodeship_id'], ['voivodeships.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('conversations_users',
+    sa.Column('conversation_id', sa.Integer(), nullable=False),
+    sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
+    sa.ForeignKeyConstraint(['conversation_id'], ['conversations.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('conversation_id', 'user_id')
+    )
+    op.create_table('messages',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('content', sa.String(length=1024), nullable=False),
+    sa.Column('displayed', sa.Boolean(), nullable=False),
+    sa.Column('conversation_id', sa.Integer(), nullable=False),
+    sa.Column('author_id', postgresql.UUID(as_uuid=True), nullable=False),
+    sa.Column('sent', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['author_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['conversation_id'], ['conversations.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('users_scopes',
     sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('scope_name', sa.String(length=32), nullable=False),
-    sa.ForeignKeyConstraint(['scope_name'], ['scopes.name'], ),
+    sa.ForeignKeyConstraint(['scope_name'], ['scopes.scope_name'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('user_id', 'scope_name')
     )
@@ -68,7 +91,7 @@ def upgrade():
     sa.Column('content', sa.String(length=8192), nullable=False),
     sa.Column('price', sa.Numeric(precision=16, scale=2), nullable=False),
     sa.Column('status', sa.Enum('active', 'hidden', name='classifiedstatus'), nullable=False),
-    sa.Column('user_id', postgresql.UUID(), nullable=False),
+    sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('category_id', sa.Integer(), nullable=False),
     sa.Column('city_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['category_id'], ['categories.id'], ),
@@ -80,10 +103,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('filename', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('extension', sa.String(length=8), nullable=False),
-    sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('classified_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['classified_id'], ['classifieds.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('filename')
     )
@@ -95,10 +116,13 @@ def downgrade():
     op.drop_table('images')
     op.drop_table('classifieds')
     op.drop_table('users_scopes')
+    op.drop_table('messages')
+    op.drop_table('conversations_users')
     op.drop_table('cities')
     op.drop_table('voivodeships')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
     op.drop_table('scopes')
+    op.drop_table('conversations')
     op.drop_table('categories')
     # ### end Alembic commands ###

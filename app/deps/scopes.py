@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm.session import Session
 from app.deps.db import DBSessionManager
@@ -23,17 +24,20 @@ def query_scopes_dict(db_session: Session = None):
     scopes = query_scopes(db_session)
     scopes_dict = {}
     for scope in scopes:
-        scopes_dict[scope.name] = scope.description
+        scopes_dict[scope.scope_name] = scope.description
     return scopes_dict
 
 
-def query_user_scopes(user: User, db_session: Session):
+def query_scope_names_for_user(user: User, db_session: Session) -> List[str]:
     if user.is_superuser:
-        return query_scopes(db_session)
+        scopes = query_scopes(db_session)
+        names = [scope.scope_name for scope in scopes]
+        return names
 
     user_scopes = (
         db_session.execute(select(UserScope).where(UserScope.user_id == user.id))
         .scalars()
         .all()
     )
-    return user_scopes
+    names = [user_scope.scope_name for user_scope in user_scopes]
+    return names

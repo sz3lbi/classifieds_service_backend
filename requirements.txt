@@ -14,3 +14,4 @@ loguru>=0.5.3
 passlib[bcrypt]>=1.7.4
 mypy>=0.930
 databases[postgresql]>=0.5.3
+arq>=0.22

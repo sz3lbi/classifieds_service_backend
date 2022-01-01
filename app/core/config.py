@@ -29,6 +29,10 @@ class Settings(BaseSettings):
         "images_delete",
         "conversations_get",
         "conversations_create",
+        "conversations_users_get",
+        "conversations_users_create",
+        "messages_get",
+        "messages_create",
     ]
 
     # Images upload

@@ -49,8 +49,8 @@ def parse_react_admin_params(model: DeclarativeMeta) -> RequestParams:
             try:
                 order_by = desc(model.id)
             except AttributeError:
-                logger.error(f"Default sort column (id) is invalid for {model}")
-                raise HTTPException(400, f"Default sort column (id) is invalid")
+                logger.error(f"Invalid sort column (id) for {model}")
+                raise HTTPException(400, f"Invalid sort column (id)")
 
         return RequestParams(skip=skip, limit=limit, order_by=order_by)
 

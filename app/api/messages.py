@@ -153,7 +153,7 @@ def update_message(
     return message
 
 
-@router.delete("/{message_id}}")
+@router.delete("/{message_id}")
 def delete_message(
     message_id: int,
     db: Session = Depends(get_db),

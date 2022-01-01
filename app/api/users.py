@@ -17,6 +17,7 @@ from app.deps.users import (
     validate_password,
     get_password_hash,
     query_user_by_username,
+    query_user_by_email,
 )
 from app.models.user import User
 from app.models.user_scope import UserScope
@@ -57,7 +58,7 @@ def register(
             status_code=400,
             detail=f"User with the username provided already exists",
         )
-    existing_user = query_user_by_username(user_in.email, db)
+    existing_user = query_user_by_email(user_in.email, db)
     if existing_user is not None:
         raise HTTPException(
             status_code=400,

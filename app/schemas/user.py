@@ -5,6 +5,7 @@ from uuid import UUID
 
 class User(BaseModel):
     id: UUID
+    username: str = Field(max_length=64)
     email: EmailStr
     is_active: bool = True
     is_superuser: bool = False
@@ -14,6 +15,7 @@ class User(BaseModel):
 
 
 class UserCreate(BaseModel):
+    username: str = Field(max_length=64)
     email: EmailStr
     password: str = Field(max_length=71)  # 1 byte null terminator
 

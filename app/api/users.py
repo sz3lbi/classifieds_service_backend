@@ -16,7 +16,7 @@ from app.deps.users import (
     verify_password,
     validate_password,
     get_password_hash,
-    query_user_by_email,
+    query_user_by_username,
 )
 from app.models.user import User
 from app.models.user_scope import UserScope
@@ -32,10 +32,10 @@ router = APIRouter()
 
 @router.post("/login", status_code=200)
 def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depends()):
-    email = data.username
+    username = data.username
     password = data.password
 
-    user = query_user_by_email(email, db)
+    user = query_user_by_username(username, db)
     if not user or not verify_password(password, user.hashed_password):
         raise InvalidCredentialsException
     scope_names = query_scope_names_for_user(user, db)
@@ -51,17 +51,25 @@ def register(
     user_in: UserCreate,
     db: Session = Depends(get_db),
 ):
-    existing_user = query_user_by_email(user_in.email, db)
+    existing_user = query_user_by_username(user_in.username, db)
     if existing_user is not None:
         raise HTTPException(
             status_code=400,
-            detail=f"User already exists",
+            detail=f"User with the username provided already exists",
+        )
+    existing_user = query_user_by_username(user_in.email, db)
+    if existing_user is not None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"User with the e-mail provided already exists",
         )
 
     validate_password(**user_in.dict())
     hashed_password = get_password_hash(user_in.password)
 
-    user = User(email=user_in.email, hashed_password=hashed_password)
+    user = User(
+        username=user_in.username, email=user_in.email, hashed_password=hashed_password
+    )
     db.add(user)
     db.commit()
     logger.info(f"{user} has registered.")

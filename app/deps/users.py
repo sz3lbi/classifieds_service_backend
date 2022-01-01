@@ -45,6 +45,12 @@ def query_user(user_id: UUID, db_session: Session = None):
     return user
 
 
+def query_user_by_username(username: str, db_session: Session):
+    query_user = db_session.query(User).filter(User.username == username)
+    user = query_user.first()
+    return user
+
+
 def query_user_by_email(email: EmailStr, db_session: Session):
     query_user = db_session.query(User).filter(User.email == email)
     user = query_user.first()
@@ -52,6 +58,7 @@ def query_user_by_email(email: EmailStr, db_session: Session):
 
 
 def validate_password(
+    username: str,
     email: EmailStr,
     password: str,
 ) -> None:
@@ -59,6 +66,11 @@ def validate_password(
         raise HTTPException(
             status_code=400,
             detail=f"Password should be at least {settings.PASSWORD_MIN_LENGTH} characters long",
+        )
+    if username in password:
+        raise HTTPException(
+            status_code=400,
+            detail="Password should not contain username",
         )
     if email in password:
         raise HTTPException(

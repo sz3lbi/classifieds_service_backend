@@ -5,7 +5,7 @@ Revises:
 Create Date: 2022-01-07 15:36:16.575145
 
 """
-from typing import TypedDict
+from typing import List, TypedDict
 
 from alembic import op
 import sqlalchemy as sa
@@ -24,7 +24,7 @@ class ScopesDict(TypedDict):
     default: bool
 
 
-scopes_dict: ScopesDict = [
+scopes_list: List[ScopesDict] = [
     {
         "scope_name": "categories_create",
         "description": "Create categories.",
@@ -198,7 +198,7 @@ def upgrade():
         sa.Column("default", sa.Boolean(), nullable=False, default=False),
         sa.PrimaryKeyConstraint("scope_name"),
     )
-    op.bulk_insert(scopes, scopes_dict)
+    op.bulk_insert(scopes, scopes_list)
     op.create_table(
         "users",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),

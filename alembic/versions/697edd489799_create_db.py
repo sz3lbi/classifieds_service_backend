@@ -1,8 +1,8 @@
 """create db
 
-Revision ID: 6d8d09bd104e
+Revision ID: 697edd489799
 Revises: 
-Create Date: 2021-12-28 22:20:49.442524
+Create Date: 2022-01-07 15:36:16.575145
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '6d8d09bd104e'
+revision = '697edd489799'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -37,6 +37,7 @@ def upgrade():
     )
     op.create_table('users',
     sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
+    sa.Column('username', sa.String(length=64), nullable=False),
     sa.Column('email', sa.String(length=320), nullable=False),
     sa.Column('hashed_password', sa.String(length=72), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
@@ -46,6 +47,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
+    op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
     op.create_table('voivodeships',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=32), nullable=False),
@@ -59,11 +61,13 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('conversations_users',
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('conversation_id', sa.Integer(), nullable=False),
     sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.ForeignKeyConstraint(['conversation_id'], ['conversations.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('conversation_id', 'user_id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('conversation_id', 'user_id')
     )
     op.create_table('messages',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -77,11 +81,13 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users_scopes',
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('scope_name', sa.String(length=32), nullable=False),
     sa.ForeignKeyConstraint(['scope_name'], ['scopes.scope_name'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('user_id', 'scope_name')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'scope_name')
     )
     op.create_table('classifieds',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -120,6 +126,7 @@ def downgrade():
     op.drop_table('conversations_users')
     op.drop_table('cities')
     op.drop_table('voivodeships')
+    op.drop_index(op.f('ix_users_username'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
     op.drop_table('scopes')

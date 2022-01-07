@@ -10,7 +10,7 @@ from fastapi_login.exceptions import InvalidCredentialsException
 
 from app.deps.db import get_db
 from app.deps.request_params import parse_react_admin_params
-from app.deps.scopes import query_scope_names_for_user
+from app.deps.scopes import query_default_scopes_names, query_scope_names_for_user
 from app.deps.users import (
     manager,
     verify_password,
@@ -24,9 +24,7 @@ from app.models.user_scope import UserScope
 from app.schemas import request_params
 from app.schemas.user import User as UserSchema
 from app.schemas.user import UserCreate
-from app.models.scope import Scope
 from app.core.logger import logger
-from app.core.config import settings
 
 router = APIRouter()
 
@@ -75,14 +73,9 @@ def register(
     db.commit()
     logger.info(f"{user} has registered.")
 
-    for scope_name in settings.USER_DEFAULT_SCOPES:
-        scope: Optional[Scope] = db.get(Scope, scope_name)
-        if not scope:
-            logger.error(
-                f"User default scope {scope_name} does not exist in the database."
-            )
-            continue
-        user_scope = UserScope(user_id=user.id, scope_name=scope.scope_name)
+    default_scopes = query_default_scopes_names(db)
+    for scope_name in default_scopes:
+        user_scope = UserScope(user_id=user.id, scope_name=scope_name)
         db.add(user_scope)
 
     db.commit()
@@ -108,3 +101,10 @@ def get_users(
 
     logger.info(f"{user} getting all users")
     return users
+
+
+@router.get("/users/me", response_model=UserSchema, status_code=200)
+def get_user_me(
+    user: User = Security(manager, scopes=["users_get"]),
+) -> Any:
+    return user

@@ -21,19 +21,6 @@ class Settings(BaseSettings):
     # Authorization
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 7 * 24 * 60  # 7 days
-    USER_DEFAULT_SCOPES: List[str] = [
-        "classifieds_create",
-        "classifieds_update",
-        "classifieds_delete",
-        "images_create",
-        "images_delete",
-        "conversations_get",
-        "conversations_create",
-        "conversations_users_get",
-        "conversations_users_create",
-        "messages_get",
-        "messages_create",
-    ]
 
     # Images upload
 

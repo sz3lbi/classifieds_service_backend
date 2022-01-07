@@ -29,6 +29,16 @@ def query_scopes_dict(db_session: Session = None):
     return scopes_dict
 
 
+def query_default_scopes_names(db_session: Session = None):
+    scopes = query_scopes(db_session)
+    scopes_names = []
+    for scope in scopes:
+        if not scope.default:
+            continue
+        scopes_names.append(scope.scope_name)
+    return scopes_names
+
+
 def query_scope_names_for_user(user: User, db_session: Session) -> List[str]:
     if user.is_superuser:
         scopes = query_scopes(db_session)

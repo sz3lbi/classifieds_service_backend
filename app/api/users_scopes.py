@@ -86,7 +86,7 @@ def create_user_scope(
     db.commit()
 
     logger.info(
-        f"{user} creating user_scope for user ID {user_scope.user_id} and scope {user_scope.scope_name}"
+        f"{user} creating user_scope ID {user_scope.id} for user ID {user_scope.user_id} and scope {user_scope.scope_name}"
     )
     return user_scope
 
@@ -102,7 +102,7 @@ def get_user_scope(
         raise HTTPException(404)
 
     logger.info(
-        f"{user} getting user_scope (user ID {user_scope.user_id}, scope {user_scope.scope_name})"
+        f"{user} getting user_scope ID {user_scope.id} (user ID {user_scope.user_id}, scope {user_scope.scope_name})"
     )
     return user_scope
 
@@ -120,6 +120,6 @@ def delete_user_scope(
     db.commit()
 
     logger.info(
-        f"{user} deleting user_scope (user ID {user_scope.user_id}, scope {user_scope.scope_name})"
+        f"{user} deleting user_scope ID {user_scope.id} (user ID {user_scope.user_id}, scope {user_scope.scope_name})"
     )
     return {"success": True}

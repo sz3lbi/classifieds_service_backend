@@ -1,5 +1,5 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.schema import Column, ForeignKey
+from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.sql.sqltypes import Integer
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -14,3 +14,5 @@ class ConversationUser(Base):
     conversation = relationship("Conversation", back_populates="conversations_users")
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="conversations_users")
+
+    __table_args__ = (UniqueConstraint(conversation_id, user_id),)

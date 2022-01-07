@@ -9,5 +9,7 @@ class UserScopeCreate(BaseModel):
 
 
 class UserScope(UserScopeCreate):
+    id: int
+
     class Config:
         orm_mode = True

@@ -65,9 +65,7 @@ def get_conversation_users(
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(conversations_users)}/{total}"
 
-    logger.info(
-        f"{user} getting all conversations_users with status code {response.status_code}"
-    )
+    logger.info(f"{user} getting all conversations_users")
     return conversations_users
 
 
@@ -106,9 +104,7 @@ def get_conversations_users_for_user(
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(conversations_users)}/{total}"
 
-    logger.info(
-        f"{user} getting conversations_users for user ID {user_queried.id} with status code {response.status_code}"
-    )
+    logger.info(f"{user} getting conversations_users for user ID {user_queried.id}")
     return conversations_users
 
 
@@ -147,21 +143,21 @@ def create_conversation_user(
     db.commit()
 
     logger.info(
-        f"{user} creating conversation_user for user ID {conversation_user.user_id} and conversation ID {conversation_user.conversation_id}"
+        f"{user} creating conversation_user ID {conversation_user.id} "
+        f"for user ID {conversation_user.user_id} and conversation ID {conversation_user.conversation_id}"
     )
     return conversation_user
 
 
-@router.delete("/conversation/{conversation_id}/user/{user_id}")
+@router.delete("/conversation_user/{conversation_user_id}")
 def delete_conversation_user(
-    conversation_id: int,
-    user_id: UUID,
+    conversation_user_id: int,
     db: Session = Depends(get_db),
     user: User = Security(manager, scopes=["conversations_users_delete"]),
 ) -> Any:
     conversation_user: Optional[ConversationUser] = db.get(
         ConversationUser,
-        {"conversation_id": conversation_id, "user_id": user_id},
+        conversation_user_id,
     )
     if not conversation_user:
         raise HTTPException(404)
@@ -169,6 +165,7 @@ def delete_conversation_user(
     db.commit()
 
     logger.info(
-        f"{user} deleting conversation_user (user ID {conversation_user.user_id}, conversation ID {conversation_user.conversation_id})"
+        f"{user} deleting conversation_user ID {conversation_user.id} "
+        f"(user ID {conversation_user.user_id}, conversation ID {conversation_user.conversation_id})"
     )
     return {"success": True}

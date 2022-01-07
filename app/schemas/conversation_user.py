@@ -9,5 +9,7 @@ class ConversationUserCreate(BaseModel):
 
 
 class ConversationUser(ConversationUserCreate):
+    id: int
+
     class Config:
         orm_mode = True

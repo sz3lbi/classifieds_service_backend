@@ -11,7 +11,7 @@ from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
 from app.models.user_scope import UserScope
 from app.models.user import User
-from app.schemas.user_scope import UserScope as UserScopeSchema
+from app.schemas.user_scope import UserScope as UserScopeSchema, UserScopeDelete
 from app.schemas.user_scope import UserScopeCreate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/users_scopes")
 def get_users_scopes(
     response: Response,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["users_scopes_get"]),
+    user: User = Security(manager, scopes=["users_scopes"]),
     request_params: RequestParams = Depends(parse_react_admin_params(UserScope)),
 ) -> Any:
     total = db.query(func.count(UserScope.scope_name)).scalar()
@@ -45,7 +45,7 @@ def get_users_scopes_for_user(
     response: Response,
     user_id: UUID,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["users_scopes_get"]),
+    user: User = Security(manager, scopes=["users_scopes"]),
     request_params: RequestParams = Depends(parse_react_admin_params(UserScope)),
 ) -> Any:
     user_queried: Optional[User] = db.get(User, user_id)
@@ -95,7 +95,7 @@ def create_user_scope(
 def get_user_scope(
     user_scope_id: int,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["users_scopes_get"]),
+    user: User = Security(manager, scopes=["users_scopes"]),
 ) -> Any:
     user_scope: Optional[UserScope] = db.get(UserScope, user_scope_id)
     if not user_scope:
@@ -107,7 +107,7 @@ def get_user_scope(
     return user_scope
 
 
-@router.delete("/{user_scope_id}")
+@router.delete("/{user_scope_id}", response_model=UserScopeDelete)
 def delete_user_scope(
     user_scope_id: int,
     db: Session = Depends(get_db),
@@ -122,4 +122,4 @@ def delete_user_scope(
     logger.info(
         f"{user} deleting user_scope ID {user_scope.id} (user ID {user_scope.user_id}, scope {user_scope.scope_name})"
     )
-    return {"success": True}
+    return user_scope

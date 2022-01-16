@@ -19,3 +19,10 @@ class Message(MessageCreate):
 
     class Config:
         orm_mode = True
+
+
+class MessageDelete(BaseModel):
+    id: int
+
+    class Config:
+        orm_mode = True

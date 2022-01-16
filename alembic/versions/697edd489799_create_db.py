@@ -71,7 +71,7 @@ scopes_list: List[ScopesDict] = [
         "default": True,
     },
     {
-        "scope_name": "conversations_users_get",
+        "scope_name": "conversations_users",
         "description": "Get conversations_users.",
         "default": True,
     },
@@ -86,7 +86,7 @@ scopes_list: List[ScopesDict] = [
         "default": False,
     },
     {
-        "scope_name": "conversations_get",
+        "scope_name": "conversations",
         "description": "Get conversations.",
         "default": True,
     },
@@ -111,7 +111,7 @@ scopes_list: List[ScopesDict] = [
         "default": True,
     },
     {
-        "scope_name": "messages_get",
+        "scope_name": "messages",
         "description": "Get messages.",
         "default": True,
     },
@@ -130,7 +130,7 @@ scopes_list: List[ScopesDict] = [
         "description": "Delete messages.",
         "default": False,
     },
-    {"scope_name": "scopes_get", "description": "Get scopes.", "default": False},
+    {"scope_name": "scopes", "description": "Get scopes.", "default": False},
     {
         "scope_name": "scopes_create",
         "description": "Create scopes.",
@@ -142,7 +142,7 @@ scopes_list: List[ScopesDict] = [
         "default": False,
     },
     {
-        "scope_name": "users_scopes_get",
+        "scope_name": "users_scopes",
         "description": "Get users_scopes.",
         "default": False,
     },
@@ -156,7 +156,7 @@ scopes_list: List[ScopesDict] = [
         "description": "Delete users_scopes.",
         "default": False,
     },
-    {"scope_name": "users_get", "description": "Get users.", "default": False},
+    {"scope_name": "users", "description": "Get users.", "default": False},
     {
         "scope_name": "voivodeships_create",
         "description": "Create voivodeships.",

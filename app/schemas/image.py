@@ -18,3 +18,7 @@ class ImageDB(Image):
     id: int
     filename: UUID
     extension: str = Field(max_length=8)
+
+
+class ImageDelete(BaseModel):
+    id: int

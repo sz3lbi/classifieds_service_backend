@@ -14,3 +14,10 @@ class Voivodeship(VoivodeshipCreate):
 
     class Config:
         orm_mode = True
+
+
+class VoivodeshipDelete(BaseModel):
+    id: int
+
+    class Config:
+        orm_mode = True

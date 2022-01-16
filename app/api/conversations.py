@@ -11,7 +11,10 @@ from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
 from app.models.conversation import Conversation
 from app.models.user import User
-from app.schemas.conversation import Conversation as ConversationSchema
+from app.schemas.conversation import (
+    Conversation as ConversationSchema,
+    ConversationDelete,
+)
 from app.schemas.conversation import ConversationCreate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
@@ -24,7 +27,7 @@ def get_user_conversations(
     response: Response,
     user_id: UUID,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["conversations_get"]),
+    user: User = Security(manager, scopes=["conversations"]),
     request_params: RequestParams = Depends(parse_react_admin_params(Conversation)),
 ) -> Any:
     user_queried: Optional[User] = db.get(User, user_id)
@@ -85,7 +88,7 @@ def create_conversation(
 def get_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["conversations_get"]),
+    user: User = Security(manager, scopes=["conversations"]),
 ) -> Any:
     conversation: Optional[Conversation] = db.get(Conversation, conversation_id)
     if not conversation:
@@ -102,7 +105,7 @@ def get_conversation(
     return conversation
 
 
-@router.delete("/{conversation_id}")
+@router.delete("/{conversation_id}", response_model=ConversationDelete)
 def delete_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
@@ -115,4 +118,4 @@ def delete_conversation(
     db.commit()
 
     logger.info(f"{user} deleting conversation (ID {conversation.id})")
-    return {"success": True}
+    return conversation

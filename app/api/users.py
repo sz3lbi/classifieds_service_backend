@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List
 from fastapi import HTTPException, Security
 from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordRequestForm
@@ -88,7 +88,7 @@ def register(
 def get_users(
     response: Response,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["users_get"]),
+    user: User = Security(manager, scopes=["users"]),
     request_params: request_params = Depends(parse_react_admin_params(User)),
 ) -> Any:
     total = db.query(func.count(User.id)).scalar()
@@ -105,6 +105,6 @@ def get_users(
 
 @router.get("/users/me", response_model=UserSchema, status_code=200)
 def get_user_me(
-    user: User = Security(manager, scopes=["users_get"]),
+    user: User = Security(manager, scopes=["users"]),
 ) -> Any:
     return user

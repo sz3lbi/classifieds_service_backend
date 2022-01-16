@@ -22,7 +22,7 @@ from app.deps.request_params import parse_react_admin_params
 from app.models.classified import Classified
 from app.models.image import Image
 from app.models.user import User
-from app.schemas.image import Image as ImageSchema
+from app.schemas.image import Image as ImageSchema, ImageDelete
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
 from app.core.config import settings
@@ -140,7 +140,7 @@ def get_image_file(
     return file_path
 
 
-@router.delete("/{image_id}")
+@router.delete("/{image_id}", response_model=ImageDelete)
 def delete_image(
     image_id: int,
     db: Session = Depends(get_db),
@@ -162,4 +162,4 @@ def delete_image(
     db.commit()
 
     logger.info(f"{user} deleting image (ID {image.id})")
-    return {"success": True}
+    return image

@@ -10,7 +10,7 @@ from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
 from app.models.category import Category
 from app.models.user import User
-from app.schemas.category import Category as CategorySchema
+from app.schemas.category import Category as CategorySchema, CategoryDelete
 from app.schemas.category import CategoryCreate, CategoryUpdate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
@@ -85,7 +85,7 @@ def get_category(
     return category
 
 
-@router.delete("/{category_id}")
+@router.delete("/{category_id}", response_model=CategoryDelete)
 def delete_category(
     category_id: int,
     db: Session = Depends(get_db),
@@ -98,4 +98,4 @@ def delete_category(
     db.commit()
 
     logger.info(f"{user} deleting category ID {category.id}")
-    return {"success": True}
+    return category

@@ -2,6 +2,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.db import Base
+
 
 class UserScopeCreate(BaseModel):
     user_id: UUID
@@ -9,6 +11,13 @@ class UserScopeCreate(BaseModel):
 
 
 class UserScope(UserScopeCreate):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class UserScopeDelete(BaseModel):
     id: int
 
     class Config:

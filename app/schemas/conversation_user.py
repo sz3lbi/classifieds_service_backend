@@ -13,3 +13,10 @@ class ConversationUser(ConversationUserCreate):
 
     class Config:
         orm_mode = True
+
+
+class ConversationUserDelete(BaseModel):
+    id: int
+
+    class Config:
+        orm_mode = True

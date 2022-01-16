@@ -10,7 +10,7 @@ from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
 from app.models.voivodeship import Voivodeship
 from app.models.user import User
-from app.schemas.voivodeship import Voivodeship as VoivodeshipSchema
+from app.schemas.voivodeship import Voivodeship as VoivodeshipSchema, VoivodeshipDelete
 from app.schemas.voivodeship import VoivodeshipCreate, VoivodeshipUpdate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
@@ -85,7 +85,7 @@ def get_voivodeship(
     return voivodeship
 
 
-@router.delete("/{voivodeship_id}")
+@router.delete("/{voivodeship_id}", response_model=VoivodeshipDelete)
 def delete_voivodeship(
     voivodeship_id: int,
     db: Session = Depends(get_db),
@@ -98,4 +98,4 @@ def delete_voivodeship(
     db.commit()
 
     logger.info(f"{user} deleting voivodeship ID {voivodeship.id}")
-    return {"success": True}
+    return voivodeship

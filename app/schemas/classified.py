@@ -25,3 +25,10 @@ class Classified(ClassifiedCreate):
 
     class Config:
         orm_mode = True
+
+
+class ClassifiedDelete(BaseModel):
+    id: int
+
+    class Config:
+        orm_mode = True

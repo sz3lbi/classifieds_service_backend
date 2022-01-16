@@ -13,7 +13,7 @@ from app.models.conversation import Conversation
 from app.models.conversation_user import ConversationUser
 from app.models.message import Message
 from app.models.user import User
-from app.schemas.message import Message as MessageSchema, MessageUpdate
+from app.schemas.message import Message as MessageSchema, MessageDelete, MessageUpdate
 from app.schemas.message import MessageCreate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
@@ -26,7 +26,7 @@ def get_conversation_messages(
     response: Response,
     conversation_id: int,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["messages_get"]),
+    user: User = Security(manager, scopes=["messages"]),
     request_params: RequestParams = Depends(parse_react_admin_params(Message)),
 ) -> Any:
     conversation: Optional[Conversation] = db.get(Conversation, conversation_id)
@@ -71,7 +71,7 @@ def get_user_messages(
     response: Response,
     user_id: UUID,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["messages_get"]),
+    user: User = Security(manager, scopes=["messages"]),
     request_params: RequestParams = Depends(parse_react_admin_params(Message)),
 ) -> Any:
     user_queried: Optional[User] = db.get(User, user_id)
@@ -153,7 +153,7 @@ def update_message(
     return message
 
 
-@router.delete("/{message_id}")
+@router.delete("/{message_id}", response_model=MessageDelete)
 def delete_message(
     message_id: int,
     db: Session = Depends(get_db),
@@ -166,4 +166,4 @@ def delete_message(
     db.commit()
 
     logger.info(f"{user} deleting message ID {message.id}")
-    return {"success": True}
+    return message

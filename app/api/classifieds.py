@@ -11,7 +11,7 @@ from app.deps.request_params import parse_react_admin_params
 from app.models.classified import Classified
 from app.models.category import Category
 from app.models.user import User
-from app.schemas.classified import Classified as ClassifiedSchema
+from app.schemas.classified import Classified as ClassifiedSchema, ClassifiedDelete
 from app.schemas.classified import ClassifiedCreate, ClassifiedUpdate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
@@ -102,7 +102,7 @@ def get_classified(
     return classified
 
 
-@router.delete("/{classified_id}")
+@router.delete("/{classified_id}", response_model=ClassifiedDelete)
 def delete_classified(
     classified_id: int,
     db: Session = Depends(get_db),
@@ -117,4 +117,4 @@ def delete_classified(
     db.commit()
 
     logger.info(f"{user} deleting classified (ID {classified.id})")
-    return {"success": True}
+    return classified

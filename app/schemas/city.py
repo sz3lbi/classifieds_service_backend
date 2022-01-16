@@ -15,3 +15,10 @@ class City(CityCreate):
 
     class Config:
         orm_mode = True
+
+
+class CityDelete(BaseModel):
+    id: int
+
+    class Config:
+        orm_mode = True

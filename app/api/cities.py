@@ -10,7 +10,7 @@ from app.deps.users import manager
 from app.deps.request_params import parse_react_admin_params
 from app.models.city import City
 from app.models.user import User
-from app.schemas.city import City as CitySchema
+from app.schemas.city import City as CitySchema, CityDelete
 from app.schemas.city import CityCreate, CityUpdate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
@@ -83,7 +83,7 @@ def get_city(
     return city
 
 
-@router.delete("/{city_id}")
+@router.delete("/{city_id}", response_model=CityDelete)
 def delete_city(
     city_id: int,
     db: Session = Depends(get_db),
@@ -96,4 +96,4 @@ def delete_city(
     db.commit()
 
     logger.info(f"{user} deleting city {city.name} (ID {city.id})")
-    return {"success": True}
+    return city

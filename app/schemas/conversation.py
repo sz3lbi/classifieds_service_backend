@@ -10,3 +10,10 @@ class Conversation(ConversationCreate):
 
     class Config:
         orm_mode = True
+
+
+class ConversationDelete(BaseModel):
+    id: int
+
+    class Config:
+        orm_mode = True

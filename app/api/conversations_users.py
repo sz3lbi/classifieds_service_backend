@@ -12,7 +12,10 @@ from app.deps.request_params import parse_react_admin_params
 from app.models.conversation_user import ConversationUser
 from app.models.conversation import Conversation
 from app.models.user import User
-from app.schemas.conversation_user import ConversationUser as ConversationUserSchema
+from app.schemas.conversation_user import (
+    ConversationUser as ConversationUserSchema,
+    ConversationUserDelete,
+)
 from app.schemas.conversation_user import ConversationUserCreate
 from app.schemas.request_params import RequestParams
 from app.core.logger import logger
@@ -27,7 +30,7 @@ def get_conversation_users(
     response: Response,
     conversation_id: int,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["conversations_users_get"]),
+    user: User = Security(manager, scopes=["conversations_users"]),
     request_params: RequestParams = Depends(parse_react_admin_params(ConversationUser)),
 ) -> Any:
     conversation: Optional[Conversation] = db.get(Conversation, conversation_id)
@@ -74,7 +77,7 @@ def get_conversations_users_for_user(
     response: Response,
     user_id: UUID,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["conversations_users_get"]),
+    user: User = Security(manager, scopes=["conversations_users"]),
     request_params: RequestParams = Depends(parse_react_admin_params(ConversationUser)),
 ) -> Any:
     user_queried: Optional[User] = db.get(User, user_id)
@@ -149,7 +152,9 @@ def create_conversation_user(
     return conversation_user
 
 
-@router.delete("/conversation_user/{conversation_user_id}")
+@router.delete(
+    "/conversation_user/{conversation_user_id}", response_model=ConversationUserDelete
+)
 def delete_conversation_user(
     conversation_user_id: int,
     db: Session = Depends(get_db),
@@ -168,4 +173,4 @@ def delete_conversation_user(
         f"{user} deleting conversation_user ID {conversation_user.id} "
         f"(user ID {conversation_user.user_id}, conversation ID {conversation_user.conversation_id})"
     )
-    return {"success": True}
+    return conversation_user

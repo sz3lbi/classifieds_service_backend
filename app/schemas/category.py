@@ -15,3 +15,10 @@ class Category(CategoryCreate):
 
     class Config:
         orm_mode = True
+
+
+class CategoryDelete(BaseModel):
+    id: int
+
+    class Config:
+        orm_mode = True

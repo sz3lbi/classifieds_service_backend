@@ -24,7 +24,7 @@ router = APIRouter(prefix="/scopes")
 def get_scopes(
     response: Response,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["scopes_get"]),
+    user: User = Security(manager, scopes=["scopes"]),
     request_params: RequestParams = Depends(parse_react_admin_params(Scope)),
 ) -> Any:
     total = db.query(func.count(Scope.scope_name)).scalar()
@@ -44,7 +44,7 @@ def get_user_scopes(
     response: Response,
     user_id: UUID,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["scopes_get"]),
+    user: User = Security(manager, scopes=["scopes"]),
     request_params: RequestParams = Depends(parse_react_admin_params(Scope)),
 ) -> Any:
     user_queried: Optional[User] = db.get(User, user_id)
@@ -111,7 +111,7 @@ def update_scope(
 def get_scope(
     scope_name: str,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["scopes_get"]),
+    user: User = Security(manager, scopes=["scopes"]),
 ) -> Any:
     scope: Optional[Scope] = db.get(Scope, scope_name)
     if not scope:

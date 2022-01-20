@@ -50,6 +50,37 @@ def save_upload_file(upload_file: UploadFile, destination: Path) -> None:
 router = APIRouter(prefix="/images")
 
 
+@router.get("", response_model=List[ImageSchema])
+def get_images(
+    response: Response,
+    db: Session = Depends(get_db),
+    request_params: RequestParams = Depends(parse_react_admin_params(Image)),
+) -> Any:
+    total = db.query(func.count(Image.id)).scalar()
+    query_images = db.query(Image).order_by(request_params.order_by)
+    images = query_images.offset(request_params.skip).limit(request_params.limit).all()
+    response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+    response.headers[
+        "Content-Range"
+    ] = f"{request_params.skip}-{request_params.skip + len(images)}/{total}"
+
+    logger.info("Getting all images")
+    return images
+
+
+@router.get("/{image_id}", response_model=ImageSchema)
+def get_image(
+    image_id: int,
+    db: Session = Depends(get_db),
+) -> Any:
+    image: Optional[Image] = db.get(Image, image_id)
+    if not image:
+        raise HTTPException(404)
+
+    logger.info(f"Getting image ID {image.id}")
+    return image
+
+
 @router.get("/classified/{classified_id}", response_model=List[ImageSchema])
 def get_classified_images(
     response: Response,
@@ -125,7 +156,7 @@ def create_image(
     return image
 
 
-@router.get("/{image_id}", response_class=FileResponse)
+@router.get("/file/{image_id}", response_class=FileResponse)
 def get_image_file(
     image_id: int,
     db: Session = Depends(get_db),

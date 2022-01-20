@@ -19,6 +19,26 @@ from app.core.logger import logger
 router = APIRouter(prefix="/classifieds")
 
 
+@router.get("", response_model=List[ClassifiedSchema])
+def get_classifieds(
+    response: Response,
+    db: Session = Depends(get_db),
+    request_params: RequestParams = Depends(parse_react_admin_params(Classified)),
+) -> Any:
+    total = db.query(func.count(Classified.id)).scalar()
+    query_classifieds = db.query(Classified).order_by(request_params.order_by)
+    classifieds = (
+        query_classifieds.offset(request_params.skip).limit(request_params.limit).all()
+    )
+    response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+    response.headers[
+        "Content-Range"
+    ] = f"{request_params.skip}-{request_params.skip + len(classifieds)}/{total}"
+
+    logger.info("Getting all classifieds")
+    return classifieds
+
+
 @router.get("/category/{category_id}", response_model=List[ClassifiedSchema])
 def get_category_classifieds(
     response: Response,

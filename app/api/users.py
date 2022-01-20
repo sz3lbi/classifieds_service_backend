@@ -1,4 +1,5 @@
-from typing import Any, List
+from typing import Any, List, Optional
+from uuid import UUID
 from fastapi import HTTPException, Security
 from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordRequestForm
@@ -101,6 +102,20 @@ def get_users(
 
     logger.info(f"{user} getting all users")
     return users
+
+
+@router.get("/user/{user_id}", response_model=UserSchema, status_code=200)
+def get_user(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Security(manager, scopes=["users"]),
+) -> Any:
+    user_queried: Optional[User] = db.get(User, user_id)
+    if not user_queried:
+        raise HTTPException(404)
+
+    logger.info(f"{user} getting {user_queried}")
+    return user_queried
 
 
 @router.get("/users/me", response_model=UserSchema, status_code=200)

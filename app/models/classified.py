@@ -30,7 +30,9 @@ class Classified(Base):
     title = Column(String(length=32), nullable=False)
     content = Column(String(length=8192), nullable=False)
     price = Column(Numeric(16, 2), nullable=False)
-    status = Column(Enum(ClassifiedStatus), nullable=False)
+    status = Column(
+        Enum(ClassifiedStatus), default=ClassifiedStatus.active, nullable=False
+    )
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="classifieds")

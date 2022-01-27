@@ -1,3 +1,4 @@
+import base64
 from typing import Any, List, Optional
 
 from fastapi import (
@@ -169,6 +170,24 @@ def get_image_file(
 
     logger.info(f"Getting image {file_path} (ID {image.id})")
     return file_path
+
+
+@router.get("/base64/{image_id}")
+def get_image_base64(
+    image_id: int,
+    db: Session = Depends(get_db),
+) -> Any:
+    image: Optional[Image] = db.get(Image, image_id)
+    if not image:
+        raise HTTPException(404)
+
+    file_path = f"{settings.IMAGES_UPLOAD_PATH}{image.filename}{image.extension}"
+
+    with open(file_path, "rb") as f:
+        base64image = base64.b64encode(f.read())
+
+    logger.info(f"Getting image {file_path} (ID {image.id}) as base64 string")
+    return base64image
 
 
 @router.delete("/{image_id}", response_model=ImageDelete)

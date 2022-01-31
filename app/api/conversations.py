@@ -22,12 +22,36 @@ from app.core.logger import logger
 router = APIRouter(prefix="/conversations")
 
 
+@router.get("", response_model=List[ConversationSchema])
+def get_conversations(
+    response: Response,
+    db: Session = Depends(get_db),
+    user: User = Security(manager, scopes=["conversations"]),
+    request_params: RequestParams = Depends(parse_react_admin_params(Conversation)),
+) -> Any:
+    total = db.query(func.count(Conversation.id)).scalar()
+    query_conversations = db.query(Conversation).order_by(request_params.order_by)
+    conversations = (
+        query_conversations.offset(request_params.skip)
+        .limit(request_params.limit)
+        .all()
+    )
+
+    response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+    response.headers[
+        "Content-Range"
+    ] = f"{request_params.skip}-{request_params.skip + len(conversations)}/{total}"
+
+    logger.info(f"{user} getting all conversations")
+    return conversations
+
+
 @router.get("/user/{user_id}", response_model=List[ConversationSchema])
 def get_user_conversations(
     response: Response,
     user_id: UUID,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["conversations"]),
+    user: User = Security(manager),
     request_params: RequestParams = Depends(parse_react_admin_params(Conversation)),
 ) -> Any:
     user_queried: Optional[User] = db.get(User, user_id)
@@ -62,9 +86,7 @@ def get_user_conversations(
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(conversations)}/{total}"
 
-    logger.info(
-        f"{user} getting conversations for {user_queried} with status code {response.status_code}"
-    )
+    logger.info(f"{user} getting conversations for {user_queried}")
     return conversations
 
 
@@ -88,7 +110,7 @@ def create_conversation(
 def get_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["conversations"]),
+    user: User = Security(manager),
 ) -> Any:
     conversation: Optional[Conversation] = db.get(Conversation, conversation_id)
     if not conversation:

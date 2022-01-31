@@ -88,7 +88,7 @@ scopes_list: List[ScopesDict] = [
     {
         "scope_name": "conversations",
         "description": "Get conversations.",
-        "default": True,
+        "default": False,
     },
     {
         "scope_name": "conversations_create",

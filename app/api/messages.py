@@ -21,12 +21,33 @@ from app.core.logger import logger
 router = APIRouter(prefix="/messages")
 
 
+@router.get("", response_model=List[MessageSchema])
+def get_messages(
+    response: Response,
+    db: Session = Depends(get_db),
+    user: User = Security(manager, scopes=["messages"]),
+    request_params: RequestParams = Depends(parse_react_admin_params(Message)),
+) -> Any:
+    total = db.query(func.count(Message.conversation_id)).scalar()
+    query_messages = db.query(Message).order_by(request_params.order_by)
+    messages = (
+        query_messages.offset(request_params.skip).limit(request_params.limit).all()
+    )
+    response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+    response.headers[
+        "Content-Range"
+    ] = f"{request_params.skip}-{request_params.skip + len(messages)}/{total}"
+
+    logger.info(f"{user} getting all messages")
+    return messages
+
+
 @router.get("/conversation/{conversation_id}", response_model=List[MessageSchema])
 def get_conversation_messages(
     response: Response,
     conversation_id: int,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["messages"]),
+    user: User = Security(manager),
     request_params: RequestParams = Depends(parse_react_admin_params(Message)),
 ) -> Any:
     conversation: Optional[Conversation] = db.get(Conversation, conversation_id)
@@ -71,7 +92,7 @@ def get_user_messages(
     response: Response,
     user_id: UUID,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["messages"]),
+    user: User = Security(manager),
     request_params: RequestParams = Depends(parse_react_admin_params(Message)),
 ) -> Any:
     user_queried: Optional[User] = db.get(User, user_id)

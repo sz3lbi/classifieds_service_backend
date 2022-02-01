@@ -23,6 +23,31 @@ from app.core.logger import logger
 router = APIRouter(prefix="/conversations_users")
 
 
+@router.get("", response_model=List[ConversationUserSchema])
+def get_conversations_users(
+    response: Response,
+    db: Session = Depends(get_db),
+    user: User = Security(manager, scopes=["conversations_users"]),
+    request_params: RequestParams = Depends(parse_react_admin_params(ConversationUser)),
+) -> Any:
+    total = db.query(func.count(ConversationUser.conversation_id)).scalar()
+    query_conversations_users = db.query(ConversationUser).order_by(
+        request_params.order_by
+    )
+    conversations_users = (
+        query_conversations_users.offset(request_params.skip)
+        .limit(request_params.limit)
+        .all()
+    )
+    response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+    response.headers[
+        "Content-Range"
+    ] = f"{request_params.skip}-{request_params.skip + len(conversations_users)}/{total}"
+
+    logger.info(f"{user} getting all conversations_users")
+    return conversations_users
+
+
 @router.get(
     "/conversation/{conversation_id}", response_model=List[ConversationUserSchema]
 )
@@ -30,7 +55,7 @@ def get_conversation_users(
     response: Response,
     conversation_id: int,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["conversations_users"]),
+    user: User = Security(manager),
     request_params: RequestParams = Depends(parse_react_admin_params(ConversationUser)),
 ) -> Any:
     conversation: Optional[Conversation] = db.get(Conversation, conversation_id)
@@ -68,7 +93,9 @@ def get_conversation_users(
         "Content-Range"
     ] = f"{request_params.skip}-{request_params.skip + len(conversations_users)}/{total}"
 
-    logger.info(f"{user} getting all conversations_users")
+    logger.info(
+        f"{user} getting all conversations_users for conversation ID {conversation.id}"
+    )
     return conversations_users
 
 
@@ -77,7 +104,7 @@ def get_conversations_users_for_user(
     response: Response,
     user_id: UUID,
     db: Session = Depends(get_db),
-    user: User = Security(manager, scopes=["conversations_users"]),
+    user: User = Security(manager),
     request_params: RequestParams = Depends(parse_react_admin_params(ConversationUser)),
 ) -> Any:
     user_queried: Optional[User] = db.get(User, user_id)

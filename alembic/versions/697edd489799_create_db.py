@@ -73,7 +73,7 @@ scopes_list: List[ScopesDict] = [
     {
         "scope_name": "conversations_users",
         "description": "Get conversations_users.",
-        "default": True,
+        "default": False,
     },
     {
         "scope_name": "conversations_users_create",
@@ -113,7 +113,7 @@ scopes_list: List[ScopesDict] = [
     {
         "scope_name": "messages",
         "description": "Get messages.",
-        "default": True,
+        "default": False,
     },
     {
         "scope_name": "messages_create",

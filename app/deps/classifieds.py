@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.core.logger import logger
 from app.deps.db import DBSessionManager
 
-expire_time = timedelta(days=settings.CLASSIFIED_EXPIRE_TIME_DAYS)
+expire_time = timedelta(days=settings.classified_expire_time_days)
 
 
 async def hide_expired_classifieds(ctx):

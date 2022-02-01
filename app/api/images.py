@@ -34,7 +34,7 @@ import uuid
 
 
 async def valid_content_length(
-    content_length: int = Header(..., lt=settings.IMAGES_MAX_SIZE)
+    content_length: int = Header(..., lt=settings.images_max_size)
 ):
     return content_length
 
@@ -134,7 +134,7 @@ def create_image(
         )
         raise HTTPException(401)
 
-    if file.content_type not in settings.IMAGES_CONTENT_TYPES:
+    if file.content_type not in settings.images_content_types:
         logger.error(f"{user} tried to create image of type {file.content_type}")
         raise HTTPException(
             status_code=400,
@@ -143,7 +143,7 @@ def create_image(
 
     filename = uuid.uuid4()
     extension = Path(file.filename).suffix
-    destination = f"{settings.IMAGES_UPLOAD_PATH}{filename}{extension}"
+    destination = f"{settings.images_upload_path}{filename}{extension}"
     save_upload_file(file, Path(destination))
 
     image = Image(filename=filename, extension=extension)
@@ -166,7 +166,7 @@ def get_image_file(
     if not image:
         raise HTTPException(404)
 
-    file_path = f"{settings.IMAGES_UPLOAD_PATH}{image.filename}{image.extension}"
+    file_path = f"{settings.images_upload_path}{image.filename}{image.extension}"
 
     logger.info(f"Getting image {file_path} (ID {image.id})")
     return file_path
@@ -181,7 +181,7 @@ def get_image_base64(
     if not image:
         raise HTTPException(404)
 
-    file_path = f"{settings.IMAGES_UPLOAD_PATH}{image.filename}{image.extension}"
+    file_path = f"{settings.images_upload_path}{image.filename}{image.extension}"
 
     with open(file_path, "rb") as f:
         base64image = base64.b64encode(f.read())
@@ -203,7 +203,7 @@ def delete_image(
         raise HTTPException(401)
 
     try:
-        file_path = f"{settings.IMAGES_UPLOAD_PATH}{image.filename}{image.extension}"
+        file_path = f"{settings.images_upload_path}{image.filename}{image.extension}"
         os.remove(file_path)
     except FileNotFoundError:
         logger.error(f"File not found when deleting image (ID {image.id})")

@@ -13,9 +13,9 @@ from app.deps.db import DBSessionManager
 from app.deps.scopes import query_scopes_dict
 
 manager = LoginManager(
-    secret=settings.SECRET_KEY,
+    secret=settings.secret_key,
     token_url="/login",
-    default_expiry=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    default_expiry=timedelta(minutes=settings.access_token_expire_minutes),
     scopes=query_scopes_dict(),
 )
 
@@ -62,10 +62,10 @@ def validate_password(
     email: EmailStr,
     password: str,
 ) -> None:
-    if len(password) < settings.PASSWORD_MIN_LENGTH:
+    if len(password) < settings.password_min_length:
         raise HTTPException(
             status_code=400,
-            detail=f"Password should be at least {settings.PASSWORD_MIN_LENGTH} characters long",
+            detail=f"Password should be at least {settings.password_min_length} characters long",
         )
     if username in password:
         raise HTTPException(

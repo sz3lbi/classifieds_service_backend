@@ -17,7 +17,7 @@ from app.deps.users import get_password_hash
 from tests.utils import generate_random_string
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    settings.database_url,
 )
 TestingSessionLocal = sessionmaker(
     autocommit=False,

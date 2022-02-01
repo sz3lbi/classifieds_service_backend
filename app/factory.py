@@ -7,9 +7,9 @@ from app.core.config import settings
 
 
 def create_app():
-    description = f"{settings.PROJECT_NAME} API"
+    description = f"{settings.project_name} API"
     app = FastAPI(
-        title=settings.PROJECT_NAME,
+        title=settings.project_name,
         description=description,
         redoc_url=None,
     )
@@ -26,10 +26,10 @@ def setup_routers(app: FastAPI) -> None:
 
 
 def setup_cors_middleware(app):
-    if settings.BACKEND_CORS_ORIGINS:
+    if settings.backend_cors_origins:
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+            allow_origins=[str(origin) for origin in settings.backend_cors_origins],
             allow_credentials=True,
             allow_methods=["*"],
             expose_headers=["Content-Range", "Range"],

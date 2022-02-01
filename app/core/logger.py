@@ -25,11 +25,11 @@ class CustomizeLogger:
     @classmethod
     def make_logger(cls):
         logger = cls.customize_logging(
-            settings.LOGGING_PATH,
-            level=settings.LOGGING_LEVEL,
-            retention=settings.LOGGING_RETENTION,
-            rotation=settings.LOGGING_ROTATION,
-            format=settings.LOGGING_FORMAT,
+            settings.logging_path,
+            level=settings.logging_level,
+            retention=settings.logging_retention,
+            rotation=settings.logging_rotation,
+            format=settings.logging_format,
         )
         return logger
 

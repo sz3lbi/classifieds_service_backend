@@ -5,10 +5,10 @@ from sqlalchemy.orm import registry, sessionmaker
 
 from app.core.config import settings
 
-engine = create_engine(settings.DATABASE_URL, future=True)
+engine = create_engine(settings.database_url, future=True)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 mapper_registry = registry()
 Base: DeclarativeMeta = declarative_base()
 
-database = databases.Database(settings.DATABASE_URL)
+database = databases.Database(settings.database_url)

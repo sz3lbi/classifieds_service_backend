@@ -20,7 +20,7 @@ def redis_settings_from_uri(uri: str) -> RedisSettings:
 class WorkerSettings:
     functions = [hide_expired_classifieds]
     cron_jobs = [cron(hide_expired_classifieds, hour=3, minute=30, unique=True)]
-    redis_settings = redis_settings_from_uri(uri=settings.REDIS_URL)
+    redis_settings = redis_settings_from_uri(uri=settings.redis_url)
 
 
 class Worker:

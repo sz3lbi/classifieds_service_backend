@@ -5,7 +5,7 @@ from sqlalchemy.orm import registry, sessionmaker
 
 from app.core.config import settings
 
-engine = create_engine(settings.database_url, future=True, pool_size=10)
+engine = create_engine(settings.database_url, future=True, pool_size=15, max_overflow=5)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 mapper_registry = registry()

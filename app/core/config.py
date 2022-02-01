@@ -43,6 +43,7 @@ class Settings(BaseSettings):
 
     TEST_DATABASE_URL: Optional[PostgresDsn]
     DATABASE_URL: PostgresDsn
+    REDIS_URL: str = "redis://@localhost:6379/"
 
     @validator("DATABASE_URL", pre=True)
     def build_test_database_url(cls, v: Optional[str], values: Dict[str, Any]):

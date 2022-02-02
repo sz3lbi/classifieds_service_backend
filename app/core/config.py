@@ -2,7 +2,7 @@ import logging
 import sys
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseSettings, HttpUrl, PostgresDsn, RedisDsn, validator
+from pydantic import BaseSettings, PostgresDsn, RedisDsn, validator
 from pydantic.networks import AnyHttpUrl
 
 

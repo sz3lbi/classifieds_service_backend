@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy import func
+from sqlalchemy import func, and_
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
@@ -42,6 +42,37 @@ def get_messages(
     return messages
 
 
+@router.get("/{message_id}", response_model=MessageSchema)
+def get_message(
+    message_id: int,
+    db: Session = Depends(get_db),
+    user: User = Security(manager, scopes=["messages"]),
+) -> Any:
+    message: Optional[Message] = db.get(Message, message_id)
+    if not message:
+        raise HTTPException(404)
+
+    conversation: Optional[Conversation] = db.get(Conversation, message.conversation_id)
+    if not conversation:
+        raise HTTPException(404)
+
+    is_user_in_conversation = (
+        db.query(func.count(ConversationUser.conversation_id))
+        .filter(
+            and_(
+                ConversationUser.conversation_id == conversation.id,
+                ConversationUser.user_id == user.id,
+            )
+        )
+        .scalar()
+    )
+    if not is_user_in_conversation and not user.is_superuser:
+        raise HTTPException(401)
+
+    logger.info(f"{user} getting message ID {message.id}")
+    return message
+
+
 @router.get("/conversation/{conversation_id}", response_model=List[MessageSchema])
 def get_conversation_messages(
     response: Response,
@@ -57,8 +88,10 @@ def get_conversation_messages(
     is_user_in_conversation = (
         db.query(func.count(ConversationUser.conversation_id))
         .filter(
-            ConversationUser.conversation_id == conversation.id
-            and ConversationUser.user_id == user.id
+            and_(
+                ConversationUser.conversation_id == conversation.id,
+                ConversationUser.user_id == user.id,
+            )
         )
         .scalar()
     )

@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlalchemy import func
+from sqlalchemy import func, and_
 from sqlalchemy.orm.session import Session
 from starlette.responses import Response
 
@@ -48,6 +48,41 @@ def get_conversations_users(
     return conversations_users
 
 
+@router.get("/{conversation_user_id}", response_model=ConversationUserSchema)
+def get_conversation_user(
+    conversation_user_id: int,
+    db: Session = Depends(get_db),
+    user: User = Security(manager),
+) -> Any:
+    conversation_user: Optional[ConversationUser] = db.get(
+        ConversationUser, conversation_user_id
+    )
+    if not conversation_user:
+        raise HTTPException(404)
+
+    conversation: Optional[Conversation] = db.get(
+        Conversation, conversation_user.conversation_id
+    )
+    if not conversation:
+        raise HTTPException(404)
+
+    is_user_in_conversation = (
+        db.query(func.count(ConversationUser.conversation_id))
+        .filter(
+            and_(
+                ConversationUser.conversation_id == conversation.id,
+                ConversationUser.user_id == user.id,
+            )
+        )
+        .scalar()
+    )
+    if not is_user_in_conversation and not user.is_superuser:
+        raise HTTPException(401)
+
+    logger.info(f"{user} getting conversation_user ID {conversation_user.id}")
+    return conversation_user
+
+
 @router.get(
     "/conversation/{conversation_id}", response_model=List[ConversationUserSchema]
 )
@@ -65,8 +100,10 @@ def get_conversation_users(
     is_user_in_conversation = (
         db.query(func.count(ConversationUser.conversation_id))
         .filter(
-            ConversationUser.conversation_id == conversation.id
-            and ConversationUser.user_id == user.id
+            and_(
+                ConversationUser.conversation_id == conversation.id,
+                ConversationUser.user_id == user.id,
+            )
         )
         .scalar()
     )

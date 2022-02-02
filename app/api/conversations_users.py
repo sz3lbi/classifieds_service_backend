@@ -187,9 +187,15 @@ def create_conversation_user(
     if not conversation:
         raise HTTPException(404)
 
-    is_user_in_conversation: Optional[ConversationUser] = db.get(
-        ConversationUser,
-        {"conversation_id": conversation.id, "user_id": user.id},
+    is_user_in_conversation = (
+        db.query(func.count(ConversationUser.conversation_id))
+        .filter(
+            and_(
+                ConversationUser.conversation_id == conversation.id,
+                ConversationUser.user_id == user.id,
+            )
+        )
+        .scalar()
     )
     if not is_user_in_conversation and not user.is_superuser:
         raise HTTPException(401)
@@ -198,9 +204,15 @@ def create_conversation_user(
     if not user_queried:
         raise HTTPException(404)
 
-    is_user_queried_in_conversation: Optional[ConversationUser] = db.get(
-        ConversationUser,
-        {"conversation_id": conversation.id, "user_id": user_queried.id},
+    is_user_queried_in_conversation = (
+        db.query(func.count(ConversationUser.conversation_id))
+        .filter(
+            and_(
+                ConversationUser.conversation_id == conversation.id,
+                ConversationUser.user_id == user_queried.id,
+            )
+        )
+        .scalar()
     )
     if is_user_queried_in_conversation:
         raise HTTPException(409)
